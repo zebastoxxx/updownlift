@@ -21,13 +21,13 @@ export default function Layout({ children }: LayoutProps) {
                 <img src={logo} alt="Up & Down Lift" className="h-8 w-8 object-contain" />
                 <div className="hidden sm:flex flex-col">
                   <h1 className="text-lg font-semibold">Up & Down Lift</h1>
-                  <p className="text-xs text-muted-foreground">Fleet Management System</p>
+                  <p className="text-xs text-muted-foreground">Sistema de Gestión de Flota</p>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="hidden sm:flex">
-                Admin Dashboard
+                Panel Administrativo
               </Badge>
             </div>
           </header>

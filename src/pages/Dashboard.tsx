@@ -8,7 +8,7 @@ import { MachineCard } from "@/components/MachineCard";
 import { Search, Plus, Filter, Download } from "lucide-react";
 import heroImage from "@/assets/hero-equipment.jpg";
 
-// Mock data - In a real app, this would come from an API
+// Datos simulados - En una app real, estos vendrían de una API
 const mockStats = {
   totalMachines: 24,
   operational: 18,
@@ -25,8 +25,8 @@ const mockMachines = [
     model: "JCB 535-95",
     serialNumber: "JCB2023001",
     status: "operational" as const,
-    location: "Construction Site A",
-    project: "Office Building Project",
+    location: "Obra Construcción A",
+    project: "Proyecto Edificio Oficinas",
     operator: "Juan Pérez",
     hourMeter: 1245,
     lastInspection: "2024-01-15",
@@ -35,11 +35,11 @@ const mockMachines = [
   },
   {
     id: "2",
-    name: "Mini Loader ML-002",
+    name: "Minicargador ML-002",
     model: "Bobcat S650",
     serialNumber: "BOB2023002",
     status: "maintenance" as const,
-    location: "Warehouse B",
+    location: "Bodega B",
     hourMeter: 2890,
     lastInspection: "2024-01-10",
     nextMaintenance: "2024-01-28",
@@ -51,9 +51,9 @@ const mockMachines = [
     model: "Caterpillar TH3510D",
     serialNumber: "CAT2023003",
     status: "inspection" as const,
-    location: "Industrial Zone C",
-    project: "Manufacturing Facility",
-    operator: "Maria González",
+    location: "Zona Industrial C",
+    project: "Planta Manufacturera",
+    operator: "María González",
     hourMeter: 1567,
     lastInspection: "2023-12-20",
     nextMaintenance: "2024-02-01",
@@ -71,40 +71,40 @@ export default function Dashboard() {
   );
 
   const handleViewDetails = (machineId: string) => {
-    console.log("View details for machine:", machineId);
-    // Navigate to machine details page
+    console.log("Ver detalles de máquina:", machineId);
+    // Navegar a página de detalles de máquina
   };
 
   const handleStartInspection = (machineId: string) => {
-    console.log("Start inspection for machine:", machineId);
-    // Navigate to inspection form
+    console.log("Iniciar inspección de máquina:", machineId);
+    // Navegar a formulario de inspección
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-7xl">
       {/* Hero Section */}
       <div className="relative rounded-2xl overflow-hidden bg-gradient-primary">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
-        <div className="relative p-8 text-primary-foreground">
+        <div className="relative p-6 sm:p-8 text-primary-foreground">
           <div className="max-w-2xl">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">
-              Fleet Management Dashboard
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
+              Panel de Gestión de Flota
             </h1>
-            <p className="text-lg opacity-90 mb-6">
-              Monitor and manage your equipment fleet in real-time. Track inspections, 
-              maintenance schedules, and operational efficiency.
+            <p className="text-base sm:text-lg opacity-90 mb-6">
+              Monitorea y gestiona tu flota de equipos en tiempo real. Rastrea inspecciones, 
+              programas de mantenimiento y eficiencia operacional.
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button variant="secondary" className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Machine
+                Agregar Máquina
               </Button>
               <Button variant="secondary" className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20">
                 <Download className="h-4 w-4 mr-2" />
-                Export Report
+                Exportar Reporte
               </Button>
             </div>
           </div>
@@ -114,32 +114,32 @@ export default function Dashboard() {
       {/* Stats Overview */}
       <DashboardStats stats={mockStats} />
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Machines Overview */}
-        <div className="md:col-span-2">
+      {/* Actividad Reciente y Acciones Rápidas */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        {/* Vista General de Máquinas */}
+        <div className="xl:col-span-2">
           <Card className="shadow-card">
             <CardHeader>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <CardTitle>Fleet Overview</CardTitle>
+                  <CardTitle>Vista General de Flota</CardTitle>
                   <CardDescription>
-                    Current status of your equipment fleet
+                    Estado actual de tu flota de equipos
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
                     <Filter className="h-4 w-4 mr-2" />
-                    Filter
+                    Filtrar
                   </Button>
                 </div>
               </div>
               
-              {/* Search */}
+              {/* Búsqueda */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search machines, models, or locations..."
+                  placeholder="Buscar máquinas, modelos o ubicaciones..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -160,7 +160,7 @@ export default function Dashboard() {
                 
                 {filteredMachines.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    No machines found matching your search.
+                    No se encontraron máquinas que coincidan con tu búsqueda.
                   </div>
                 )}
               </div>
@@ -168,35 +168,35 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Quick Actions & Alerts */}
+        {/* Acciones Rápidas y Alertas */}
         <div className="space-y-6">
-          {/* Quick Actions */}
+          {/* Acciones Rápidas */}
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle>Acciones Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <Button className="w-full justify-start" variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
-                Register New Machine
+                Registrar Nueva Máquina
               </Button>
               <Button className="w-full justify-start" variant="outline">
                 <Search className="h-4 w-4 mr-2" />
-                Search Records
+                Buscar Registros
               </Button>
               <Button className="w-full justify-start" variant="outline">
                 <Download className="h-4 w-4 mr-2" />
-                Generate Report
+                Generar Reporte
               </Button>
             </CardContent>
           </Card>
 
-          {/* Recent Alerts */}
+          {/* Alertas Recientes */}
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle>Recent Alerts</CardTitle>
+              <CardTitle>Alertas Recientes</CardTitle>
               <CardDescription>
-                Critical notifications requiring attention
+                Notificaciones críticas que requieren atención
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -204,18 +204,18 @@ export default function Dashboard() {
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
                   <div className="w-2 h-2 rounded-full bg-destructive mt-2" />
                   <div>
-                    <p className="text-sm font-medium">Engine Alert - TH-003</p>
-                    <p className="text-xs text-muted-foreground">High temperature detected</p>
-                    <Badge variant="destructive" className="text-xs mt-1">Critical</Badge>
+                    <p className="text-sm font-medium">Alerta Motor - TH-003</p>
+                    <p className="text-xs text-muted-foreground">Temperatura alta detectada</p>
+                    <Badge variant="destructive" className="text-xs mt-1">Crítico</Badge>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-warning/5 border border-warning/20">
                   <div className="w-2 h-2 rounded-full bg-warning mt-2" />
                   <div>
-                    <p className="text-sm font-medium">Maintenance Due - ML-002</p>
-                    <p className="text-xs text-muted-foreground">300h service required</p>
-                    <Badge variant="secondary" className="text-xs mt-1">Due Soon</Badge>
+                    <p className="text-sm font-medium">Mantenimiento Vencido - ML-002</p>
+                    <p className="text-xs text-muted-foreground">Servicio de 300h requerido</p>
+                    <Badge variant="secondary" className="text-xs mt-1">Próximo</Badge>
                   </div>
                 </div>
               </div>

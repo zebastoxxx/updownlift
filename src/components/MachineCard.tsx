@@ -73,75 +73,75 @@ export function MachineCard({ machine, onViewDetails, onStartInspection }: Machi
             <MapPin className="h-4 w-4 text-muted-foreground" />
             <span>{machine.location}</span>
           </div>
-          {machine.project && (
-            <div className="flex items-center gap-2 text-sm">
-              <Wrench className="h-4 w-4 text-muted-foreground" />
-              <span>Project: {machine.project}</span>
-            </div>
-          )}
-          {machine.operator && (
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <span>Operator: {machine.operator}</span>
-            </div>
-          )}
+           {machine.project && (
+             <div className="flex items-center gap-2 text-sm">
+               <Wrench className="h-4 w-4 text-muted-foreground" />
+               <span>Proyecto: {machine.project}</span>
+             </div>
+           )}
+           {machine.operator && (
+             <div className="flex items-center gap-2 text-sm">
+               <User className="h-4 w-4 text-muted-foreground" />
+               <span>Operario: {machine.operator}</span>
+             </div>
+           )}
         </div>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <div>
-              <p className="text-sm font-medium">{machine.hourMeter.toLocaleString()}h</p>
-              <p className="text-xs text-muted-foreground">Hour Meter</p>
-            </div>
-          </div>
-          {machine.fuelLevel && (
-            <div className="flex items-center gap-2">
-              <Fuel className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">{machine.fuelLevel}%</p>
-                <p className="text-xs text-muted-foreground">Fuel Level</p>
-              </div>
-            </div>
-          )}
-        </div>
+         {/* Métricas */}
+         <div className="grid grid-cols-2 gap-4">
+           <div className="flex items-center gap-2">
+             <Clock className="h-4 w-4 text-muted-foreground" />
+             <div>
+               <p className="text-sm font-medium">{machine.hourMeter.toLocaleString()}h</p>
+               <p className="text-xs text-muted-foreground">Horómetro</p>
+             </div>
+           </div>
+           {machine.fuelLevel && (
+             <div className="flex items-center gap-2">
+               <Fuel className="h-4 w-4 text-muted-foreground" />
+               <div>
+                 <p className="text-sm font-medium">{machine.fuelLevel}%</p>
+                 <p className="text-xs text-muted-foreground">Nivel Combustible</p>
+               </div>
+             </div>
+           )}
+         </div>
 
-        {/* Maintenance Info */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Last Inspection</span>
-            <span className="text-sm">{formatDate(machine.lastInspection)}</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Next Maintenance</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm">{formatDate(machine.nextMaintenance)}</span>
-              {isMaintenanceDue(machine.nextMaintenance) && (
-                <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
-                  Due Soon
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
+         {/* Información de Mantenimiento */}
+         <div className="space-y-2">
+           <div className="flex items-center justify-between">
+             <span className="text-sm text-muted-foreground">Última Inspección</span>
+             <span className="text-sm">{formatDate(machine.lastInspection)}</span>
+           </div>
+           <div className="flex items-center justify-between">
+             <span className="text-sm text-muted-foreground">Próximo Mantenimiento</span>
+             <div className="flex items-center gap-2">
+               <span className="text-sm">{formatDate(machine.nextMaintenance)}</span>
+               {isMaintenanceDue(machine.nextMaintenance) && (
+                 <Badge variant="destructive" className="text-xs px-1.5 py-0.5">
+                   Próximo
+                 </Badge>
+               )}
+             </div>
+           </div>
+         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          <Button 
-            onClick={() => onViewDetails(machine.id)}
-            variant="outline"
-            className="flex-1"
-          >
-            View Details
-          </Button>
-          <Button 
-            onClick={() => onStartInspection(machine.id)}
-            className="flex-1"
-          >
-            Start Inspection
-          </Button>
-        </div>
+         {/* Botones de Acción */}
+         <div className="flex flex-col sm:flex-row gap-2 pt-2">
+           <Button 
+             onClick={() => onViewDetails(machine.id)}
+             variant="outline"
+             className="flex-1"
+           >
+             Ver Detalles
+           </Button>
+           <Button 
+             onClick={() => onStartInspection(machine.id)}
+             className="flex-1"
+           >
+             Iniciar Inspección
+           </Button>
+         </div>
       </CardContent>
     </Card>
   );

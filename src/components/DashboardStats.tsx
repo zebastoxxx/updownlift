@@ -59,7 +59,7 @@ function StatCard({ title, value, description, trend, icon: Icon, variant = "def
         {trend && (
           <div className={`flex items-center gap-1 text-xs mt-2 ${trendColorClasses[trend.direction]}`}>
             <TrendIcon className="h-3 w-3" />
-            <span>{Math.abs(trend.value)}% from last month</span>
+            <span>{Math.abs(trend.value)}% vs mes anterior</span>
           </div>
         )}
       </CardContent>
@@ -80,37 +80,37 @@ interface DashboardStatsProps {
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <StatCard
-        title="Total Machines"
+        title="Total de Máquinas"
         value={stats.totalMachines}
-        description="Active fleet"
+        description="Flota activa"
         icon={Truck}
         trend={{ value: 8, direction: "up" }}
       />
       
       <StatCard
-        title="Operational"
+        title="Operativas"
         value={stats.operational}
-        description={`${Math.round((stats.operational / stats.totalMachines) * 100)}% of fleet`}
+        description={`${Math.round((stats.operational / stats.totalMachines) * 100)}% de la flota`}
         icon={CheckCircle}
         variant="success"
         trend={{ value: 2, direction: "up" }}
       />
       
       <StatCard
-        title="Maintenance Due"
+        title="Mantenimiento Pendiente"
         value={stats.maintenance}
-        description="Requires attention"
+        description="Requiere atención"
         icon={Wrench}
         variant={stats.maintenance > 0 ? "warning" : "default"}
         trend={{ value: 12, direction: "down" }}
       />
       
       <StatCard
-        title="Active Alerts"
+        title="Alertas Activas"
         value={stats.alerts}
-        description="Critical issues"
+        description="Problemas críticos"
         icon={AlertTriangle}
         variant={stats.alerts > 0 ? "destructive" : "default"}
         trend={{ value: 5, direction: "down" }}
