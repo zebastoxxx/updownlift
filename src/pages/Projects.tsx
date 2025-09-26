@@ -1,112 +1,108 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Search, Plus, Filter, Download, FolderOpen, Calendar, Truck, Building2 } from "lucide-react";
+import { 
+  Search, 
+  Filter, 
+  Download, 
+  Plus, 
+  Eye, 
+  Settings,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Users,
+  Truck,
+  Building
+} from "lucide-react";
+import { ProjectForm } from "@/components/projects/ProjectForm";
 
-// Datos simulados - En una app real vendrían de una API
-const mockProjects = [
-  {
-    id: "1",
-    name: "Proyecto Edificio Oficinas",
-    client: "Constructora Los Andes",
-    status: "active",
-    startDate: "2024-01-15",
-    endDate: "2024-06-30",
-    location: "Bogotá, Colombia",
-    progress: 65,
-    machinesAssigned: 3,
-    totalBudget: 45000000,
-    description: "Construcción de edificio de oficinas de 15 pisos en zona financiera",
-  },
-  {
-    id: "2",
-    name: "Planta Manufacturera",
-    client: "Grupo Inmobiliario del Norte",
-    status: "active",
-    startDate: "2024-02-01",
-    endDate: "2024-08-15",
-    location: "Medellín, Colombia",
-    progress: 35,
-    machinesAssigned: 2,
-    totalBudget: 28000000,
-    description: "Construcción de planta manufacturera y oficinas administrativas",
-  },
-  {
-    id: "3",
-    name: "Centro Comercial Sur",
-    client: "Infraestructura Moderna S.A.",
-    status: "completed",
-    startDate: "2023-08-20",
-    endDate: "2023-12-15",
-    location: "Cali, Colombia",
-    progress: 100,
-    machinesAssigned: 1,
-    totalBudget: 15000000,
-    description: "Centro comercial con 80 locales y 3 pisos",
-  },
-  {
-    id: "4",
-    name: "Residencial Los Pinos",
-    client: "Constructora Los Andes",
-    status: "planning",
-    startDate: "2024-03-01",
-    endDate: "2024-10-30",
-    location: "Barranquilla, Colombia",
-    progress: 10,
-    machinesAssigned: 0,
-    totalBudget: 35000000,
-    description: "Conjunto residencial de 120 apartamentos en 4 torres",
-  },
-];
+interface Project {
+  id: string;
+  name: string;
+  client_name?: string;
+  status: string;
+  location?: string;
+  city?: string;
+  country?: string;
+  address?: string;
+  start_date?: string;
+  end_date?: string;
+  description?: string;
+  created_at: string;
+}
 
 export default function Projects() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const filteredProjects = mockProjects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.location.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    let filtered = projects;
     
-    const matchesStatus = statusFilter === "all" || project.status === statusFilter;
+    if (searchTerm) {
+      filtered = filtered.filter(project =>
+        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
     
-    return matchesSearch && matchesStatus;
-  });
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(project => project.status === statusFilter);
+    }
+    
+    setFilteredProjects(filtered);
+  }, [projects, searchTerm, statusFilter]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-    }).format(amount);
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          project_clients (
+            clients (
+              name
+            )
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Transform data to include client names
+      const transformedProjects = data?.map(project => ({
+        ...project,
+        client_name: project.project_clients?.[0]?.clients?.name || null
+      })) || [];
+      
+      setProjects(transformedProjects);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+  const statusCounts = projects.reduce((acc, project) => {
+    acc[project.status] = (acc[project.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
-  const getStatusBadge = (status: string) => {
-    const statusMap = {
-      active: { label: "Activo", variant: "default" as const },
-      completed: { label: "Completado", variant: "secondary" as const },
-      planning: { label: "Planificación", variant: "outline" as const },
-      paused: { label: "Pausado", variant: "destructive" as const },
-    };
-    return statusMap[status as keyof typeof statusMap] || statusMap.active;
-  };
-
-  const statusCounts = {
-    all: mockProjects.length,
-    active: mockProjects.filter(p => p.status === "active").length,
-    completed: mockProjects.filter(p => p.status === "completed").length,
-    planning: mockProjects.filter(p => p.status === "planning").length,
+  const handleProjectCreated = () => {
+    fetchProjects(); // Refresh the projects list
   };
 
   return (
@@ -116,17 +112,23 @@ export default function Projects() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Gestión de Proyectos</h1>
           <p className="text-muted-foreground">
-            Administra y monitorea todos los proyectos activos
+            Administra y monitorea todos los proyectos de construcción
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo Proyecto
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
+          <Button className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => setIsFormOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nuevo Proyecto
+          </Button>
+        </div>
       </div>
 
-      {/* Búsqueda y filtros */}
-      <Card className="shadow-card">
+      {/* Search and Filters */}
+      <Card>
         <CardHeader>
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
@@ -145,134 +147,162 @@ export default function Projects() {
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
               </Button>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar
-              </Button>
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Filtros de estado */}
+      {/* Status Filter Buttons */}
       <div className="flex flex-wrap gap-2">
         <Button
           variant={statusFilter === "all" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("all")}
         >
-          Todos ({statusCounts.all})
+          Todos ({projects.length})
         </Button>
         <Button
-          variant={statusFilter === "active" ? "default" : "outline"}
+          variant={statusFilter === "activo" ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter("active")}
+          onClick={() => setStatusFilter("activo")}
         >
-          Activos ({statusCounts.active})
+          Activos ({statusCounts.activo || 0})
         </Button>
         <Button
-          variant={statusFilter === "completed" ? "default" : "outline"}
+          variant={statusFilter === "completado" ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter("completed")}
+          onClick={() => setStatusFilter("completado")}
         >
-          Completados ({statusCounts.completed})
+          Completados ({statusCounts.completado || 0})
         </Button>
         <Button
-          variant={statusFilter === "planning" ? "default" : "outline"}
+          variant={statusFilter === "planificacion" ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter("planning")}
+          onClick={() => setStatusFilter("planificacion")}
         >
-          En Planificación ({statusCounts.planning})
+          En Planificación ({statusCounts.planificacion || 0})
+        </Button>
+        <Button
+          variant={statusFilter === "pausado" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setStatusFilter("pausado")}
+        >
+          Pausados ({statusCounts.pausado || 0})
         </Button>
       </div>
 
-      {/* Lista de proyectos */}
-      <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
-        {filteredProjects.map((project) => {
-          const statusBadge = getStatusBadge(project.status);
-          return (
-            <Card key={project.id} className="shadow-card hover:shadow-elevated transition-shadow duration-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <FolderOpen className="h-6 w-6 text-primary" />
+      {/* Projects List */}
+      {isLoading ? (
+        <div className="grid gap-6">
+          {[1, 2, 3].map(i => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
+                <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-muted rounded w-1/4"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filteredProjects.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Building className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No se encontraron proyectos</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              {searchTerm || statusFilter !== "all" 
+                ? "Intenta ajustar los filtros de búsqueda" 
+                : "Comienza creando tu primer proyecto"
+              }
+            </p>
+            {!searchTerm && statusFilter === "all" && (
+              <Button onClick={() => setIsFormOpen(true)} className="bg-yellow-500 hover:bg-yellow-600 text-black">
+                <Plus className="h-4 w-4 mr-2" />
+                Crear Primer Proyecto
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6">
+          {filteredProjects.map((project) => (
+            <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                  {/* Project Info */}
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h3 className="text-xl font-semibold">{project.name}</h3>
+                      <Badge variant={project.status === 'activo' ? 'default' : project.status === 'completado' ? 'secondary' : project.status === 'pausado' ? 'destructive' : 'outline'}>
+                        {project.status}
+                      </Badge>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{project.name}</h3>
-                      <p className="text-sm text-muted-foreground">{project.client}</p>
+                    
+                    {project.client_name && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Users className="h-4 w-4" />
+                        <span>Cliente: {project.client_name}</span>
+                      </div>
+                    )}
+                    
+                    {project.description && (
+                      <p className="text-muted-foreground">{project.description}</p>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                      {(project.city || project.location) && (
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>{project.city || project.location}</span>
+                        </div>
+                      )}
+                      
+                      {project.start_date && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>Inicio: {new Date(project.start_date).toLocaleDateString('es-ES')}</span>
+                        </div>
+                      )}
+                      
+                      {project.end_date && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>Fin: {new Date(project.end_date).toLocaleDateString('es-ES')}</span>
+                        </div>
+                      )}
                     </div>
+                    
+                    {project.address && (
+                      <p className="text-sm text-muted-foreground">
+                        📍 {project.address}
+                      </p>
+                    )}
                   </div>
-                  <Badge variant={statusBadge.variant}>
-                    {statusBadge.label}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">{project.description}</p>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Información del proyecto */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span>{project.location}</span>
+                  
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Detalles
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4 mr-2" />
+                      Gestionar
+                    </Button>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatDate(project.startDate)} - {formatDate(project.endDate)}</span>
-                  </div>
-                </div>
-
-                {/* Progreso */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Progreso</span>  
-                    <span className="text-sm text-muted-foreground">{project.progress}%</span>
-                  </div>
-                  <Progress value={project.progress} className="w-full" />
-                </div>
-
-                {/* Métricas */}
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">{project.machinesAssigned}</p>
-                      <p className="text-xs text-muted-foreground">Máquinas Asignadas</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{formatCurrency(project.totalBudget)}</p>
-                    <p className="text-xs text-muted-foreground">Presupuesto Total</p>
-                  </div>
-                </div>
-
-                {/* Botones de acción */}
-                <div className="flex gap-2 pt-2">
-                  <Button variant="outline" className="flex-1">
-                    Ver Detalles
-                  </Button>
-                  <Button className="flex-1">
-                    Gestionar
-                  </Button>
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      {filteredProjects.length === 0 && (
-        <Card className="shadow-card">
-          <CardContent className="text-center py-12">
-            <div className="text-muted-foreground">
-              <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">No se encontraron proyectos</h3>
-              <p>No hay proyectos que coincidan con los filtros aplicados.</p>
-            </div>
-          </CardContent>
-        </Card>
+          ))}
+        </div>
       )}
+
+      {/* Project Form Dialog */}
+      <ProjectForm 
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onProjectCreated={handleProjectCreated}
+      />
     </div>
   );
 }

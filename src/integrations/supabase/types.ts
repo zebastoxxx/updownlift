@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_machines: {
+        Row: {
+          assigned_date: string | null
+          client_id: string
+          id: string
+          machine_id: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          client_id: string
+          id?: string
+          machine_id: string
+        }
+        Update: {
+          assigned_date?: string | null
+          client_id?: string
+          id?: string
+          machine_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_machines_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_machines_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_person: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          status: string | null
+          tax_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       machines: {
         Row: {
           action_required: boolean | null
@@ -217,6 +298,42 @@ export type Database = {
         }
         Relationships: []
       }
+      project_clients: {
+        Row: {
+          assigned_date: string | null
+          client_id: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          assigned_date?: string | null
+          client_id: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          assigned_date?: string | null
+          client_id?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clients_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_machines: {
         Row: {
           assigned_date: string | null
@@ -255,7 +372,10 @@ export type Database = {
       }
       projects: {
         Row: {
+          address: string | null
+          city: string | null
           client_name: string | null
+          country: string | null
           created_at: string
           description: string | null
           end_date: string | null
@@ -267,7 +387,10 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          city?: string | null
           client_name?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
@@ -279,7 +402,10 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          city?: string | null
           client_name?: string | null
+          country?: string | null
           created_at?: string
           description?: string | null
           end_date?: string | null
