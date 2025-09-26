@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Building } from "lucide-react";
+import { Search, MapPin, Building, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Project {
   id: string;
@@ -23,22 +24,11 @@ interface ProjectSelectorProps {
 
 export function ProjectSelector({ onProjectSelect, selectedProject }: ProjectSelectorProps) {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchProjects();
   }, []);
-
-  useEffect(() => {
-    const filtered = projects.filter(project =>
-      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredProjects(filtered);
-  }, [projects, searchTerm]);
 
   const fetchProjects = async () => {
     try {
@@ -54,6 +44,13 @@ export function ProjectSelector({ onProjectSelect, selectedProject }: ProjectSel
       console.error('Error fetching projects:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleProjectChange = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      onProjectSelect(project);
     }
   };
 
@@ -111,65 +108,71 @@ export function ProjectSelector({ onProjectSelect, selectedProject }: ProjectSel
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nombre, cliente o ubicación..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <Select value={selectedProject?.id || ""} onValueChange={handleProjectChange}>
+            <SelectTrigger className="w-full bg-background border-input hover:bg-accent/50 z-50">
+              <SelectValue placeholder="Seleccione un proyecto..." />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-border shadow-lg z-50 max-h-[300px]">
+              {projects.map((project) => (
+                <SelectItem 
+                  key={project.id} 
+                  value={project.id}
+                  className="cursor-pointer hover:bg-accent focus:bg-accent"
+                >
+                  <div className="flex flex-col items-start w-full">
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium">{project.name}</span>
+                      {getStatusBadge(project.status)}
+                    </div>
+                    {project.client_name && (
+                      <span className="text-sm text-muted-foreground">
+                        Cliente: {project.client_name}
+                      </span>
+                    )}
+                    {project.location && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {project.location}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
-      <div className="space-y-3">
-        {filteredProjects.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">
-                {searchTerm ? "No se encontraron proyectos" : "No hay proyectos activos"}
+      {/* Selected Project Preview */}
+      {selectedProject && (
+        <Card className="border-primary bg-primary/5">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-semibold text-lg">{selectedProject.name}</h3>
+              {getStatusBadge(selectedProject.status)}
+            </div>
+            
+            {selectedProject.client_name && (
+              <p className="text-sm text-muted-foreground mb-2">
+                Cliente: {selectedProject.client_name}
               </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredProjects.map((project) => (
-            <Card 
-              key={project.id}
-              className={`cursor-pointer transition-colors hover:bg-accent ${
-                selectedProject?.id === project.id ? 'ring-2 ring-primary' : ''
-              }`}
-              onClick={() => onProjectSelect(project)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-lg">{project.name}</h3>
-                  {getStatusBadge(project.status)}
-                </div>
-                
-                {project.client_name && (
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Cliente: {project.client_name}
-                  </p>
-                )}
-                
-                {project.location && (
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                    <MapPin className="h-3 w-3" />
-                    {project.location}
-                  </div>
-                )}
-                
-                {project.description && (
-                  <p className="text-sm text-muted-foreground">
-                    {project.description}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+            )}
+            
+            {selectedProject.location && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                <MapPin className="h-3 w-3" />
+                {selectedProject.location}
+              </div>
+            )}
+            
+            {selectedProject.description && (
+              <p className="text-sm text-muted-foreground">
+                {selectedProject.description}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {selectedProject && (
         <div className="fixed bottom-4 left-4 right-4 max-w-2xl mx-auto">
