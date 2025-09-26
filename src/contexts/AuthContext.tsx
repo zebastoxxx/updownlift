@@ -1,106 +1,104 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface CustomUser {
+  id: string;
+  username: string;
+  full_name: string;
+  role: 'operario' | 'supervisor' | 'administrador';
+}
+
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: CustomUser | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
+  signIn: (username: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  hasPermission: (requiredRole: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<CustomUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-
-        // Create profile if user just signed up
-        if (event === 'SIGNED_IN' && session?.user) {
-          setTimeout(() => {
-            createUserProfile(session.user);
-          }, 0);
+    // Check for existing token on mount
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      try {
+        // Decode JWT payload (basic decode without verification for client-side)
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        
+        // Check if token is expired
+        if (payload.exp * 1000 > Date.now()) {
+          setUser({
+            id: payload.sub,
+            username: payload.username,
+            full_name: payload.full_name,
+            role: payload.role
+          });
+        } else {
+          localStorage.removeItem('auth_token');
         }
+      } catch (error) {
+        console.error('Error parsing token:', error);
+        localStorage.removeItem('auth_token');
       }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
-  const createUserProfile = async (user: User) => {
+  const signIn = async (username: string, password: string) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: user.id,
-            full_name: user.user_metadata?.full_name || '',
-            role: 'operario'
-          }
-        ]);
-      
-      if (error && !error.message.includes('duplicate key')) {
-        console.error('Error creating profile:', error);
+      const { data, error } = await supabase.functions.invoke('authenticate-user', {
+        body: { username, password }
+      });
+
+      if (error) {
+        return { error: error.message || 'Error de autenticación' };
+      }
+
+      if (data.success) {
+        localStorage.setItem('auth_token', data.token);
+        setUser(data.user);
+        return { error: null };
+      } else {
+        return { error: data.error || 'Credenciales inválidas' };
       }
     } catch (error) {
-      console.error('Error creating profile:', error);
+      console.error('Sign in error:', error);
+      return { error: 'Error de red' };
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName || '',
-        }
-      }
-    });
-    return { error };
-  };
-
   const signOut = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem('auth_token');
+    setUser(null);
+  };
+
+  const hasPermission = (requiredRole: string) => {
+    if (!user) return false;
+    
+    const roleHierarchy = {
+      'operario': 1,
+      'supervisor': 2,
+      'administrador': 3
+    };
+    
+    const userLevel = roleHierarchy[user.role as keyof typeof roleHierarchy] || 0;
+    const requiredLevel = roleHierarchy[requiredRole as keyof typeof roleHierarchy] || 0;
+    
+    return userLevel >= requiredLevel;
   };
 
   return (
     <AuthContext.Provider value={{
       user,
-      session,
       loading,
       signIn,
-      signUp,
       signOut,
+      hasPermission,
     }}>
       {children}
     </AuthContext.Provider>

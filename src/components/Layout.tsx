@@ -35,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="hidden sm:flex">
-                {user?.user_metadata?.full_name || user?.email || 'Usuario'}
+                {user?.full_name || user?.username || 'Usuario'}
               </Badge>
               <Button
                 variant="outline"

@@ -183,6 +183,7 @@ export type Database = {
           tires_wear: string | null
           updated_at: string
           user_id: string
+          username: string | null
         }
         Insert: {
           checklist?: Json | null
@@ -211,6 +212,7 @@ export type Database = {
           tires_wear?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           checklist?: Json | null
@@ -239,6 +241,7 @@ export type Database = {
           tires_wear?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -284,6 +287,7 @@ export type Database = {
           id: string
           role: string | null
           updated_at: string
+          username: string | null
         }
         Insert: {
           created_at?: string
@@ -291,6 +295,7 @@ export type Database = {
           id: string
           role?: string | null
           updated_at?: string
+          username?: string | null
         }
         Update: {
           created_at?: string
@@ -298,6 +303,7 @@ export type Database = {
           id?: string
           role?: string | null
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
@@ -418,6 +424,42 @@ export type Database = {
           start_date?: string | null
           status?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          full_name: string | null
+          id: string
+          password_hash: string
+          role: string
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          full_name?: string | null
+          id?: string
+          password_hash: string
+          role?: string
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          full_name?: string | null
+          id?: string
+          password_hash?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          username?: string
         }
         Relationships: []
       }
