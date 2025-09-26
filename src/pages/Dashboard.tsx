@@ -15,100 +15,64 @@ const mockStats = {
   maintenance: 4,
   alerts: 2,
   utilizationRate: 78,
-  completedInspections: 156,
+  completedInspections: 156
 };
-
-const mockMachines = [
-  {
-    id: "1",
-    name: "Telehandler TH-001",
-    model: "JCB 535-95",
-    serialNumber: "JCB2023001",
-    status: "operational" as const,
-    location: "Obra Construcción A",
-    project: "Proyecto Edificio Oficinas",
-    operator: "Juan Pérez",
-    hourMeter: 1245,
-    lastInspection: "2024-01-15",
-    nextMaintenance: "2024-02-15",
-    fuelLevel: 75,
-  },
-  {
-    id: "2",
-    name: "Minicargador ML-002",
-    model: "Bobcat S650",
-    serialNumber: "BOB2023002",
-    status: "maintenance" as const,
-    location: "Bodega B",
-    hourMeter: 2890,
-    lastInspection: "2024-01-10",
-    nextMaintenance: "2024-01-28",
-    fuelLevel: 45,
-  },
-  {
-    id: "3",
-    name: "Telehandler TH-003",
-    model: "Caterpillar TH3510D",
-    serialNumber: "CAT2023003",
-    status: "inspection" as const,
-    location: "Zona Industrial C",
-    project: "Planta Manufacturera",
-    operator: "María González",
-    hourMeter: 1567,
-    lastInspection: "2023-12-20",
-    nextMaintenance: "2024-02-01",
-    fuelLevel: 90,
-  },
-];
-
+const mockMachines = [{
+  id: "1",
+  name: "Telehandler TH-001",
+  model: "JCB 535-95",
+  serialNumber: "JCB2023001",
+  status: "operational" as const,
+  location: "Obra Construcción A",
+  project: "Proyecto Edificio Oficinas",
+  operator: "Juan Pérez",
+  hourMeter: 1245,
+  lastInspection: "2024-01-15",
+  nextMaintenance: "2024-02-15",
+  fuelLevel: 75
+}, {
+  id: "2",
+  name: "Minicargador ML-002",
+  model: "Bobcat S650",
+  serialNumber: "BOB2023002",
+  status: "maintenance" as const,
+  location: "Bodega B",
+  hourMeter: 2890,
+  lastInspection: "2024-01-10",
+  nextMaintenance: "2024-01-28",
+  fuelLevel: 45
+}, {
+  id: "3",
+  name: "Telehandler TH-003",
+  model: "Caterpillar TH3510D",
+  serialNumber: "CAT2023003",
+  status: "inspection" as const,
+  location: "Zona Industrial C",
+  project: "Planta Manufacturera",
+  operator: "María González",
+  hourMeter: 1567,
+  lastInspection: "2023-12-20",
+  nextMaintenance: "2024-02-01",
+  fuelLevel: 90
+}];
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredMachines = mockMachines.filter(machine =>
-    machine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    machine.location.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  const filteredMachines = mockMachines.filter(machine => machine.name.toLowerCase().includes(searchTerm.toLowerCase()) || machine.model.toLowerCase().includes(searchTerm.toLowerCase()) || machine.location.toLowerCase().includes(searchTerm.toLowerCase()));
   const handleViewDetails = (machineId: string) => {
     console.log("Ver detalles de máquina:", machineId);
     // Navegar a página de detalles de máquina
   };
-
   const handleStartInspection = (machineId: string) => {
     console.log("Iniciar inspección de máquina:", machineId);
     // Navegar a formulario de inspección
   };
-
-  return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-7xl">
+  return <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-7xl">
       {/* Hero Section */}
       <div className="relative rounded-2xl overflow-hidden bg-gradient-primary">
-        <div 
-          className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        />
-        <div className="relative p-6 sm:p-8 text-primary-foreground">
-          <div className="max-w-2xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
-              Panel de Gestión de Flota
-            </h1>
-            <p className="text-base sm:text-lg opacity-90 mb-6">
-              Monitorea y gestiona tu flota de equipos en tiempo real. Rastrea inspecciones, 
-              programas de mantenimiento y eficiencia operacional.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button variant="secondary" className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20">
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Máquina
-              </Button>
-              <Button variant="secondary" className="bg-white/10 border-white/20 text-primary-foreground hover:bg-white/20">
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Reporte
-              </Button>
-            </div>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{
+        backgroundImage: `url(${heroImage})`
+      }} />
+        
       </div>
 
       {/* Stats Overview */}
@@ -138,31 +102,17 @@ export default function Dashboard() {
               {/* Búsqueda */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar máquinas, modelos o ubicaciones..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+                <Input placeholder="Buscar máquinas, modelos o ubicaciones..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
             </CardHeader>
             
             <CardContent>
               <div className="grid gap-4">
-                {filteredMachines.map((machine) => (
-                  <MachineCard
-                    key={machine.id}
-                    machine={machine}
-                    onViewDetails={handleViewDetails}
-                    onStartInspection={handleStartInspection}
-                  />
-                ))}
+                {filteredMachines.map(machine => <MachineCard key={machine.id} machine={machine} onViewDetails={handleViewDetails} onStartInspection={handleStartInspection} />)}
                 
-                {filteredMachines.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
+                {filteredMachines.length === 0 && <div className="text-center py-8 text-muted-foreground">
                     No se encontraron máquinas que coincidan con tu búsqueda.
-                  </div>
-                )}
+                  </div>}
               </div>
             </CardContent>
           </Card>
@@ -223,6 +173,5 @@ export default function Dashboard() {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
