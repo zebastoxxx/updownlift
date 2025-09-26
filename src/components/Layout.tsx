@@ -1,6 +1,9 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 interface LayoutProps {
@@ -8,6 +11,11 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const { signOut, user } = useAuth();
+  
+  const handleLogout = async () => {
+    await signOut();
+  };
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
@@ -27,8 +35,17 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="hidden sm:flex">
-                Panel Administrativo
+                {user?.user_metadata?.full_name || user?.email || 'Usuario'}
               </Badge>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Cerrar Sesión</span>
+              </Button>
             </div>
           </header>
 
