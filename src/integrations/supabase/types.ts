@@ -280,33 +280,6 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          created_at: string
-          full_name: string | null
-          id: string
-          role: string | null
-          updated_at: string
-          username: string | null
-        }
-        Insert: {
-          created_at?: string
-          full_name?: string | null
-          id: string
-          role?: string | null
-          updated_at?: string
-          username?: string | null
-        }
-        Update: {
-          created_at?: string
-          full_name?: string | null
-          id?: string
-          role?: string | null
-          updated_at?: string
-          username?: string | null
-        }
-        Relationships: []
-      }
       project_clients: {
         Row: {
           assigned_date: string | null
@@ -468,7 +441,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { user_id: string }
+        Returns: string
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

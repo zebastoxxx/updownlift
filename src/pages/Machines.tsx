@@ -8,6 +8,7 @@ import { DataTable, createSortableHeader } from "@/components/ui/data-table";
 import { Search, Plus, Filter, Download } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/hooks/use-toast";
+import { MachineForm } from "@/components/machines/MachineForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,8 @@ export default function Machines() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
 
   useEffect(() => {
     fetchMachines();
@@ -63,6 +66,11 @@ export default function Machines() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEdit = (machine: Machine) => {
+    setSelectedMachine(machine);
+    setIsFormOpen(true);
   };
 
   const handleDelete = async (machine: Machine) => {
@@ -114,6 +122,12 @@ export default function Machines() {
     }
   };
 
+  const handleMachineCreated = () => {
+    fetchMachines();
+    setIsFormOpen(false);
+    setSelectedMachine(null);
+  };
+
   const statusCounts = machines.reduce((acc, machine) => {
     acc[machine.status] = (acc[machine.status] || 0) + 1;
     return acc;
@@ -134,8 +148,7 @@ export default function Machines() {
     const statusMap = {
       'operativo': { label: 'Operativo', variant: 'default' as const },
       'mantenimiento': { label: 'Mantenimiento', variant: 'destructive' as const },
-      'inspeccion': { label: 'Inspección', variant: 'secondary' as const },
-      'fuera_de_linea': { label: 'Fuera de Línea', variant: 'outline' as const }
+      'fuera_de_servicio': { label: 'Fuera de Servicio', variant: 'outline' as const }
     };
     
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
@@ -196,6 +209,42 @@ export default function Machines() {
         );
       },
     },
+    {
+      id: "actions",
+      header: "Acciones",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(row.original)}
+          >
+            Editar
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                Eliminar
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Esto eliminará permanentemente la máquina de la base de datos.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleDelete(row.original)}>
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -213,7 +262,7 @@ export default function Machines() {
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
-          <Button>
+          <Button onClick={() => setIsFormOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Registrar Máquina
           </Button>
@@ -267,18 +316,11 @@ export default function Machines() {
           Mantenimiento ({statusCounts.mantenimiento || 0})
         </Button>
         <Button
-          variant={statusFilter === "inspeccion" ? "default" : "outline"}
+          variant={statusFilter === "fuera_de_servicio" ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter("inspeccion")}
+          onClick={() => setStatusFilter("fuera_de_servicio")}
         >
-          Inspección ({statusCounts.inspeccion || 0})
-        </Button>
-        <Button
-          variant={statusFilter === "fuera_de_linea" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("fuera_de_linea")}
-        >
-          Fuera de Línea ({statusCounts.fuera_de_linea || 0})
+          Fuera de Servicio ({statusCounts.fuera_de_servicio || 0})
         </Button>
       </div>
 
@@ -288,36 +330,26 @@ export default function Machines() {
           {isLoading ? (
             <div className="text-center py-8">Cargando máquinas...</div>
           ) : (
-            <AlertDialog>
-              <DataTable
-                columns={columns}
-                data={filteredMachines}
-                searchKey="name"
-                searchPlaceholder="Buscar máquinas..."
-                onEdit={(machine) => console.log("Edit machine:", machine)}
-                onDelete={(machine) => (
-                  <AlertDialogTrigger asChild>
-                    <button onClick={() => handleDelete(machine)}>Delete</button>
-                  </AlertDialogTrigger>
-                )}
-                onBulkDelete={handleBulkDelete}
-              />
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción no se puede deshacer. Esto eliminará permanentemente la máquina de la base de datos.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction>Eliminar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DataTable
+              columns={columns}
+              data={filteredMachines}
+              searchKey="name"
+              searchPlaceholder="Buscar máquinas..."
+              onBulkDelete={handleBulkDelete}
+            />
           )}
         </CardContent>
       </Card>
+
+      <MachineForm
+        isOpen={isFormOpen}
+        onClose={() => {
+          setIsFormOpen(false);
+          setSelectedMachine(null);
+        }}
+        onMachineCreated={handleMachineCreated}
+        machine={selectedMachine}
+      />
     </div>
   );
 }

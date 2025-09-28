@@ -44,6 +44,7 @@ export function ClientSelector({ selectedClients, onClientSelect }: ClientSelect
   }, [clients, searchTerm]);
 
   const fetchClients = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('clients')
