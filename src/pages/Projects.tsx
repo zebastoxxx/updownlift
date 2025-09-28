@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, createSortableHeader } from "@/components/ui/data-table";
-import { Search, Plus, Filter, Download, Building } from "lucide-react";
+import { Search, Plus, Filter, Download, Building, Grid, List, MapPin, Calendar, Users, ChevronDown, ArrowUpDown } from "lucide-react";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface Project {
   id: string;
@@ -29,6 +31,9 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [viewMode, setViewMode] = useState<"table" | "cards">("table");
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -139,6 +144,15 @@ export default function Projects() {
     const matchesStatus = statusFilter === "all" || project.status === statusFilter;
     
     return matchesSearch && matchesStatus;
+  }).sort((a, b) => {
+    const aValue = a[sortBy as keyof Project] || "";
+    const bValue = b[sortBy as keyof Project] || "";
+    
+    if (sortOrder === "asc") {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    }
   });
 
   const handleProjectCreated = () => {
@@ -158,6 +172,58 @@ export default function Projects() {
     const config = statusMap[status as keyof typeof statusMap] || { label: status, variant: 'outline' as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
+
+  const ProjectCard = ({ project }: { project: Project }) => (
+    <Card className="h-full hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Building className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-semibold text-sm truncate">{project.name}</h3>
+          </div>
+          {getStatusBadge(project.status)}
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0 space-y-2">
+        {project.client_name && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Users className="h-3 w-3" />
+            <span className="truncate">{project.client_name}</span>
+          </div>
+        )}
+        {(project.city || project.location) && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="h-3 w-3" />
+            <span className="truncate">{project.city || project.location}</span>
+          </div>
+        )}
+        {project.start_date && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            <span>{new Date(project.start_date).toLocaleDateString('es-ES')}</span>
+          </div>
+        )}
+        <div className="flex gap-1 pt-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex-1 text-xs h-7"
+            onClick={() => handleEdit(project)}
+          >
+            Editar
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="flex-1 text-xs h-7"
+            onClick={() => handleDelete(project)}
+          >
+            Eliminar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   const columns: ColumnDef<Project>[] = [
     {
@@ -249,7 +315,7 @@ export default function Projects() {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Search and Controls */}
       <Card>
         <CardHeader>
           <div className="flex flex-col lg:flex-row gap-4">
@@ -264,10 +330,59 @@ export default function Projects() {
                 />
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros Avanzados
-            </Button>
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                    Ordenar
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-48" align="end">
+                  <div className="space-y-2">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Nombre</SelectItem>
+                        <SelectItem value="created_at">Fecha creación</SelectItem>
+                        <SelectItem value="start_date">Fecha inicio</SelectItem>
+                        <SelectItem value="status">Estado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Select value={sortOrder} onValueChange={(value) => setSortOrder(value as "asc" | "desc")}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="asc">Ascendente</SelectItem>
+                        <SelectItem value="desc">Descendente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <div className="flex rounded-md overflow-hidden border">
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-none"
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -311,12 +426,16 @@ export default function Projects() {
         </Button>
       </div>
 
-      {/* Data Table */}
-      <Card>
-        <CardContent className="p-6">
-          {isLoading ? (
+      {/* Data Display */}
+      {isLoading ? (
+        <Card>
+          <CardContent className="p-6">
             <div className="text-center py-8">Cargando proyectos...</div>
-          ) : (
+          </CardContent>
+        </Card>
+      ) : viewMode === "table" ? (
+        <Card>
+          <CardContent className="p-6">
             <DataTable
               columns={columns}
               data={filteredProjects}
@@ -325,10 +444,23 @@ export default function Projects() {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onBulkDelete={handleBulkDelete}
+              enableMultiSelect={true}
             />
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProjects.length === 0 ? (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              No se encontraron proyectos
+            </div>
+          ) : (
+            filteredProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))
           )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
 
       {/* Project Form Dialog */}
       <ProjectForm 

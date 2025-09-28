@@ -50,29 +50,26 @@ export function MachinesSelector({ client, selectedMachines, onMachinesChange }:
 
   const fetchClientMachines = async () => {
     try {
+      // Fetch ALL machines from the database, not just client-specific ones
       const { data, error } = await supabase
-        .from('client_machines')
+        .from('machines')
         .select(`
-          machine_id,
-          machines (
-            id,
-            name,
-            model,
-            brand,
-            current_hours,
-            status,
-            serial_number,
-            location
-          )
+          id,
+          name,
+          model,
+          brand,
+          current_hours,
+          status,
+          serial_number,
+          location
         `)
-        .eq('client_id', client.id);
+        .order('name');
 
       if (error) throw error;
       
-      const machineData = data?.map(item => item.machines).filter(Boolean) || [];
-      setAvailableMachines(machineData as Machine[]);
+      setAvailableMachines(data || []);
     } catch (error) {
-      console.error('Error fetching client machines:', error);
+      console.error('Error fetching machines:', error);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +141,7 @@ export function MachinesSelector({ client, selectedMachines, onMachinesChange }:
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          Máquinas para {client.name}
+          Máquinas disponibles para {client.name}
           {selectedMachines.length > 0 && (
             <Badge variant="secondary" className="ml-auto">
               {selectedMachines.length} seleccionada{selectedMachines.length !== 1 ? 's' : ''}
@@ -153,28 +150,15 @@ export function MachinesSelector({ client, selectedMachines, onMachinesChange }:
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar máquinas..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
 
         {/* Machines list */}
         <div className="space-y-3 max-h-64 overflow-y-auto">
-          {filteredMachines.length === 0 ? (
+          {availableMachines.length === 0 ? (
             <div className="p-4 text-center text-muted-foreground">
-              {availableMachines.length === 0 
-                ? `No hay máquinas asignadas a ${client.name}` 
-                : "No se encontraron máquinas"
-              }
+              No hay máquinas disponibles en la base de datos
             </div>
           ) : (
-            filteredMachines.map((machine) => (
+            availableMachines.map((machine) => (
               <Card 
                 key={machine.id}
                 className={`cursor-pointer transition-colors hover:bg-accent ${
@@ -224,16 +208,6 @@ export function MachinesSelector({ client, selectedMachines, onMachinesChange }:
           )}
         </div>
 
-        {availableMachines.length === 0 && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-center gap-2 text-yellow-800">
-              <AlertTriangle className="h-4 w-4" />
-              <span className="text-sm">
-                Este cliente no tiene máquinas asignadas. Puede asignar máquinas desde la página de clientes.
-              </span>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
