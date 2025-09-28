@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Camera, Upload, Save, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+// import { useAuth } from "@/contexts/AuthContext";
 import { ProjectSelector } from "@/components/preoperational/ProjectSelector";
 import { MachineSelector } from "@/components/preoperational/MachineSelector";
 import { HourometerInput } from "@/components/preoperational/HourometerInput";
@@ -55,7 +55,8 @@ const CHECKLIST_ITEMS = [
 export default function Preoperational() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  // Temporarily use hardcoded user ID until auth context issue is resolved
+  const user = { id: '00000000-0000-0000-0000-000000000000' };
   
   // Step state
   const [currentStep, setCurrentStep] = useState(1);
