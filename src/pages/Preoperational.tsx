@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Camera, Upload, Save, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { ProjectSelector } from "@/components/preoperational/ProjectSelector";
 import { MachineSelector } from "@/components/preoperational/MachineSelector";
 import { HourometerInput } from "@/components/preoperational/HourometerInput";
@@ -37,30 +38,24 @@ interface Machine {
 }
 
 interface Photo {
-  type: string;
   file: File;
   preview: string;
-  caption?: string;
 }
 
 const CHECKLIST_ITEMS = [
-  { key: "aceite", label: "Revisión niveles de aceite" },
-  { key: "refrigerante", label: "Revisión niveles de refrigerante" },
-  { key: "combustible", label: "Nivel de combustible" },
   { key: "temperatura", label: "Temperatura del equipo" },
   { key: "alertas", label: "Revisión de alertas en tablero" },
   { key: "mangueras", label: "Revisión de mangueras" },
   { key: "fugas", label: "Revisión de fugas de aceite" },
-  { key: "procedimientos", label: "Procedimientos a inspeccionar en obra" },
   { key: "aire_acondicionado", label: "Funcionamiento aire acondicionado" },
   { key: "llantas_aire", label: "Llantas con suficiente aire" },
-  { key: "oruga_grasa", label: "(Si aplica) Oruga: grasa ok" },
-  { key: "lubricacion", label: "General: equipos lubricados correctamente" }
+  { key: "oruga_grasa", label: "(Si aplica) Oruga: grasa ok" }
 ];
 
 export default function Preoperational() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   // Step state
   const [currentStep, setCurrentStep] = useState(1);
@@ -172,9 +167,6 @@ export default function Preoperational() {
     
     if (!selectedProject) errors.push("Debe seleccionar un proyecto");
     if (!selectedMachine) errors.push("Debe seleccionar una máquina");
-    if (!formData.fuel_level) errors.push("Debe indicar el nivel de combustible");
-    if (!formData.oil_level) errors.push("Debe indicar el nivel de aceite");
-    if (!formData.coolant_level) errors.push("Debe indicar el nivel de refrigerante");
     if (!formData.hydraulic_level) errors.push("Debe indicar el nivel hidráulico");
     if (formData.hours_worked > 24) errors.push("Las horas trabajadas no pueden exceder 24");
     
@@ -210,7 +202,7 @@ export default function Preoperational() {
         .insert({
           machine_id: selectedMachine!.id,
           project_id: selectedProject!.id,
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user?.id || '',
           datetime: formData.datetime,
           ...formData,
           checklist: Object.entries(checklist).map(([key, value]) => ({
