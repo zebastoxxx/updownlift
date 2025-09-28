@@ -11,7 +11,7 @@ interface CustomUser {
 interface AuthContextType {
   user: CustomUser | null;
   loading: boolean;
-  signIn: (username: string, password: string) => Promise<{ error: any }>;
+  signIn: (username: string, password: string) => Promise<{ error: any; user?: CustomUser }>;
   signOut: () => Promise<void>;
   hasPermission: (requiredRole: string) => boolean;
 }
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (data.success) {
         localStorage.setItem('auth_token', data.token);
         setUser(data.user);
-        return { error: null };
+        return { error: null, user: data.user };
       } else {
         return { error: data.error || 'Credenciales inválidas' };
       }

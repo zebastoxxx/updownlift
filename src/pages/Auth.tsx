@@ -29,7 +29,12 @@ export default function Auth() {
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !authLoading) {
-      navigate('/', { replace: true });
+      // Redirect based on user role
+      if (user.role === "operario") {
+        navigate("/preoperational", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
   }, [user, authLoading, navigate]);
 
@@ -64,12 +69,12 @@ export default function Auth() {
     }
 
     try {
-      const { error } = await signIn(formData.username, formData.password);
+      const result = await signIn(formData.username, formData.password);
       
-      if (error) {
+      if (result?.error) {
         toast({
           title: "Error de autenticación",
-          description: error || "Credenciales inválidas",
+          description: result.error || "Credenciales inválidas",
           variant: "destructive",
         });
       } else {
@@ -77,7 +82,13 @@ export default function Auth() {
           title: "¡Bienvenido!",
           description: "Has iniciado sesión correctamente",
         });
-        navigate('/', { replace: true });
+        
+        // Redirect based on user role after successful login
+        if (result?.user?.role === "operario") {
+          navigate("/preoperational", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }
     } catch (error) {
       toast({

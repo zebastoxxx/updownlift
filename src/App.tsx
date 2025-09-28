@@ -10,11 +10,6 @@ import Dashboard from "./pages/Dashboard";
 import Machines from "./pages/Machines";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
-import Inspections from "./pages/Inspections";
-import WorkOrders from "./pages/WorkOrders";
-import Reports from "./pages/Reports";
-import Search from "./pages/Search";
-import Alerts from "./pages/Alerts";
 import Settings from "./pages/Settings";
 import Preoperational from "./pages/Preoperational";
 import Auth from "./pages/Auth";
@@ -34,7 +29,7 @@ const App = () => (
             <Route
               path="/"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="administrador">
                   <Layout>
                     <Dashboard />
                   </Layout>
@@ -44,7 +39,7 @@ const App = () => (
             <Route
               path="/machines"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="supervisor">
                   <Layout>
                     <Machines />
                   </Layout>
@@ -54,7 +49,7 @@ const App = () => (
             <Route
               path="/clients"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="supervisor">
                   <Layout>
                     <Clients />
                   </Layout>
@@ -64,7 +59,7 @@ const App = () => (
             <Route
               path="/projects"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="supervisor">
                   <Layout>
                     <Projects />
                   </Layout>
@@ -72,59 +67,9 @@ const App = () => (
               }
             />
             <Route
-              path="/inspections"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Inspections />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/work-orders"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <WorkOrders />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/reports"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Reports />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/search"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Search />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/alerts"
-              element={
-                <ProtectedRoute>
-                  <Layout>
-                    <Alerts />
-                  </Layout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="administrador">
                   <Layout>
                     <Settings />
                   </Layout>

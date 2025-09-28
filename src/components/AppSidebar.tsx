@@ -1,17 +1,13 @@
-import { useState } from "react";
 import { 
   Truck, 
   Users, 
   FolderOpen, 
   ClipboardCheck, 
-  Search, 
   Settings, 
-  BarChart3,
-  Wrench,
-  AlertTriangle,
-  FileText
+  BarChart3
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Sidebar,
@@ -25,25 +21,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navigationItems = [
-  { title: "Dashboard", url: "/", icon: BarChart3 },
-  { title: "Máquinas", url: "/machines", icon: Truck },
-  { title: "Preoperacional", url: "/preoperational", icon: ClipboardCheck },
-  { title: "Clientes", url: "/clients", icon: Users },
-  { title: "Proyectos", url: "/projects", icon: FolderOpen },
-  { title: "Inspecciones", url: "/inspections", icon: ClipboardCheck },
-  { title: "Órdenes de Trabajo", url: "/work-orders", icon: Wrench },
-  { title: "Reportes", url: "/reports", icon: FileText },
-];
-
-const quickActions = [
-  { title: "Búsqueda", url: "/search", icon: Search },
-  { title: "Alertas", url: "/alerts", icon: AlertTriangle },
-  { title: "Configuración", url: "/settings", icon: Settings },
-];
-
 export function AppSidebar() {
   const { open } = useSidebar();
+  const { user, hasPermission } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -52,6 +32,44 @@ export function AppSidebar() {
     isActive 
       ? "bg-primary text-primary-foreground font-medium" 
       : "hover:bg-accent/10 text-sidebar-foreground";
+
+  // Filter navigation items based on user role
+  const getNavigationItems = () => {
+    const items = [];
+    
+    // Dashboard - only for administrators
+    if (hasPermission("administrador")) {
+      items.push({ title: "Dashboard", url: "/", icon: BarChart3 });
+    }
+    
+    // Preoperational - available for all authenticated users
+    items.push({ title: "Preoperacional", url: "/preoperational", icon: ClipboardCheck });
+    
+    // Machines, Clients, Projects - for supervisors and administrators
+    if (hasPermission("supervisor")) {
+      items.push(
+        { title: "Máquinas", url: "/machines", icon: Truck },
+        { title: "Clientes", url: "/clients", icon: Users },
+        { title: "Proyectos", url: "/projects", icon: FolderOpen }
+      );
+    }
+    
+    return items;
+  };
+
+  const getQuickActions = () => {
+    const items = [];
+    
+    // Settings - only for administrators
+    if (hasPermission("administrador")) {
+      items.push({ title: "Configuración", url: "/settings", icon: Settings });
+    }
+    
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
+  const quickActions = getQuickActions();
 
   return (
     <Sidebar collapsible="icon">
@@ -78,25 +96,27 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {/* Quick Actions */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground font-medium">
-            Acciones Rápidas
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {quickActions.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {quickActions.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-sidebar-foreground font-medium">
+              Configuración
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {quickActions.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink to={item.url} className={getNavClasses}>
+                        <item.icon className="h-5 w-5" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );

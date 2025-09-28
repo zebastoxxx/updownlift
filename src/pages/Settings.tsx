@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,45 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, User, Bell, Shield, Database, Smartphone, Save } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Settings as SettingsIcon, User, Database, UserPlus, Edit2, Trash2, Users, Save } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+
+interface User {
+  id: string;
+  username: string;
+  full_name: string | null;
+  role: string;
+  status: string;
+  created_at: string;
+}
+
+const userSchema = z.object({
+  username: z.string().min(3, "El usuario debe tener al menos 3 caracteres"),
+  full_name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  role: z.enum(["operario", "supervisor", "administrador"])
+});
 
 export default function Settings() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    full_name: "",
+    password: "",
+    role: "operario" as const
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const { toast } = useToast();
+
   const [notifications, setNotifications] = useState({
     email: true,
     push: true,
@@ -19,303 +55,288 @@ export default function Settings() {
     alerts: true,
   });
 
-  const [profile, setProfile] = useState({
-    name: "Administrador",
-    email: "admin@updownlift.com",
-    phone: "+57 300 123 4567",
-    role: "admin",
-    language: "es",
-    timezone: "America/Bogota",
-  });
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los usuarios",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateForm = (data: typeof formData) => {
+    try {
+      userSchema.parse(data);
+      return {};
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.issues.forEach((err) => {
+          if (err.path.length > 0) {
+            errors[String(err.path[0])] = err.message;
+          }
+        });
+        return errors;
+      }
+      return {};
+    }
+  };
+
+  const handleCreateUser = async () => {
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .insert([{
+          username: formData.username,
+          full_name: formData.full_name,
+          password_hash: formData.password, // In production, this should be hashed
+          role: formData.role
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Usuario creado",
+        description: "El usuario ha sido creado exitosamente",
+      });
+
+      setCreateDialogOpen(false);
+      setFormData({ username: "", full_name: "", password: "", role: "operario" });
+      setFormErrors({});
+      loadUsers();
+    } catch (error) {
+      console.error('Error creating user:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el usuario",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleToggleStatus = async (userId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo';
+    
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ status: newStatus })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Estado actualizado",
+        description: `Usuario ${newStatus === 'activo' ? 'activado' : 'desactivado'} exitosamente`,
+      });
+
+      loadUsers();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estado del usuario",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleProfileChange = (key: string, value: string) => {
-    setProfile(prev => ({ ...prev, [key]: value }));
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'administrador': return 'default';
+      case 'supervisor': return 'secondary';
+      case 'operario': return 'outline';
+      default: return 'outline';
+    }
   };
 
-  const handleSave = () => {
-    console.log("Guardando configuración...");
-    // Implementar lógica de guardado
+  const getStatusBadgeVariant = (status: string) => {
+    return status === 'activo' ? 'default' : 'destructive';
   };
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-4xl">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-6xl">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Configuración</h1>
         <p className="text-muted-foreground">
-          Personaliza tu experiencia y gestiona la configuración del sistema
+          Gestiona usuarios, roles y configuración del sistema
         </p>
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-          <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
-          <TabsTrigger value="security">Seguridad</TabsTrigger>
+      <Tabs defaultValue="users" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="users">Gestión de Usuarios</TabsTrigger>
           <TabsTrigger value="system">Sistema</TabsTrigger>
-          <TabsTrigger value="mobile">Móvil</TabsTrigger>
         </TabsList>
 
-        {/* Perfil */}
-        <TabsContent value="profile" className="space-y-6">
-          <Card className="shadow-card">
+        {/* Users Management */}
+        <TabsContent value="users" className="space-y-6">
+          <Card>
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                <CardTitle>Información Personal</CardTitle>
-              </div>
-              <CardDescription>
-                Actualiza tu información de perfil y preferencias
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nombre Completo</Label>
-                  <Input
-                    id="name"
-                    value={profile.name}
-                    onChange={(e) => handleProfileChange("name", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => handleProfileChange("email", e.target.value)}
-                  />
-                </div>
-              </div>
-              
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Teléfono</Label>
-                  <Input
-                    id="phone"
-                    value={profile.phone}
-                    onChange={(e) => handleProfileChange("phone", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Rol</Label>
-                  <Select value={profile.role} onValueChange={(value) => handleProfileChange("role", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Administrador</SelectItem>
-                      <SelectItem value="manager">Gerente</SelectItem>
-                      <SelectItem value="technician">Técnico</SelectItem>
-                      <SelectItem value="operator">Operario</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="language">Idioma</Label>
-                  <Select value={profile.language} onValueChange={(value) => handleProfileChange("language", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="en">English</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Zona Horaria</Label>
-                  <Select value={profile.timezone} onValueChange={(value) => handleProfileChange("timezone", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="America/Bogota">Bogotá (GMT-5)</SelectItem>
-                      <SelectItem value="America/Mexico_City">Ciudad de México (GMT-6)</SelectItem>
-                      <SelectItem value="America/New_York">Nueva York (GMT-5)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Notificaciones */}
-        <TabsContent value="notifications" className="space-y-6">
-          <Card className="shadow-card">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Bell className="h-5 w-5" />
-                <CardTitle>Preferencias de Notificación</CardTitle>
-              </div>
-              <CardDescription>
-                Configura cómo y cuándo recibir notificaciones
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-4">Canales de Notificación</h4>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Notificaciones por Email</Label>
-                      <p className="text-sm text-muted-foreground">Recibir notificaciones en tu correo electrónico</p>
-                    </div>
-                    <Switch
-                      checked={notifications.email}
-                      onCheckedChange={(checked) => handleNotificationChange("email", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Notificaciones Push</Label>
-                      <p className="text-sm text-muted-foreground">Notificaciones en tiempo real en la aplicación</p>
-                    </div>
-                    <Switch
-                      checked={notifications.push}
-                      onCheckedChange={(checked) => handleNotificationChange("push", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Notificaciones SMS</Label>
-                      <p className="text-sm text-muted-foreground">Mensajes de texto para alertas críticas</p>
-                    </div>
-                    <Switch
-                      checked={notifications.sms}
-                      onCheckedChange={(checked) => handleNotificationChange("sms", checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Tipos de Notificación</h4>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Mantenimiento</Label>
-                      <p className="text-sm text-muted-foreground">Recordatorios de mantenimiento programado</p>
-                    </div>
-                    <Switch
-                      checked={notifications.maintenance}
-                      onCheckedChange={(checked) => handleNotificationChange("maintenance", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Inspecciones</Label>
-                      <p className="text-sm text-muted-foreground">Notificaciones sobre inspecciones completadas</p>
-                    </div>
-                    <Switch
-                      checked={notifications.inspections}
-                      onCheckedChange={(checked) => handleNotificationChange("inspections", checked)}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Alertas Críticas</Label>
-                      <p className="text-sm text-muted-foreground">Alertas de fallas y problemas críticos</p>
-                    </div>
-                    <Switch
-                      checked={notifications.alerts}
-                      onCheckedChange={(checked) => handleNotificationChange("alerts", checked)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Seguridad */}
-        <TabsContent value="security" className="space-y-6">
-          <Card className="shadow-card">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                <CardTitle>Seguridad y Privacidad</CardTitle>
-              </div>
-              <CardDescription>
-                Gestiona la seguridad de tu cuenta y permisos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-4">Cambiar Contraseña</h4>
-                <div className="space-y-4 max-w-md">
-                  <div className="space-y-2">
-                    <Label htmlFor="current-password">Contraseña Actual</Label>
-                    <Input id="current-password" type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nueva Contraseña</Label>
-                    <Input id="new-password" type="password" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
-                    <Input id="confirm-password" type="password" />
-                  </div>
-                  <Button>Actualizar Contraseña</Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Autenticación de Dos Factores</h4>
-                <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
                   <div>
-                    <Label>Habilitar 2FA</Label>
-                    <p className="text-sm text-muted-foreground">Agrega una capa extra de seguridad a tu cuenta</p>
-                  </div>
-                  <Button variant="outline">Configurar</Button>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Sesiones Activas</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Navegador Web - Chrome</p>
-                      <p className="text-sm text-muted-foreground">Bogotá, Colombia • Activa ahora</p>
-                    </div>
-                    <Button variant="outline" size="sm">Cerrar Sesión</Button>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <p className="font-medium">Aplicación Móvil - Android</p>
-                      <p className="text-sm text-muted-foreground">Medellín, Colombia • hace 2 horas</p>
-                    </div>
-                    <Button variant="outline" size="sm">Cerrar Sesión</Button>
+                    <CardTitle>Gestión de Usuarios</CardTitle>
+                    <CardDescription>
+                      Crea y administra cuentas de usuario y sus permisos
+                    </CardDescription>
                   </div>
                 </div>
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Crear Usuario
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Crear Nuevo Usuario</DialogTitle>
+                      <DialogDescription>
+                        Completa la información para crear una nueva cuenta de usuario
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="username">Usuario</Label>
+                        <Input
+                          id="username"
+                          value={formData.username}
+                          onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                          placeholder="Nombre de usuario"
+                        />
+                        {formErrors.username && (
+                          <p className="text-sm text-destructive">{formErrors.username}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="full_name">Nombre Completo</Label>
+                        <Input
+                          id="full_name"
+                          value={formData.full_name}
+                          onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                          placeholder="Nombre completo"
+                        />
+                        {formErrors.full_name && (
+                          <p className="text-sm text-destructive">{formErrors.full_name}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="password">Contraseña</Label>
+                        <Input
+                          id="password"
+                          type="password"
+                          value={formData.password}
+                          onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                          placeholder="Contraseña"
+                        />
+                        {formErrors.password && (
+                          <p className="text-sm text-destructive">{formErrors.password}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Rol</Label>
+                        <Select
+                          value={formData.role}
+                          onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as any }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="operario">Operario</SelectItem>
+                            <SelectItem value="supervisor">Supervisor</SelectItem>
+                            <SelectItem value="administrador">Administrador</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {formErrors.role && (
+                          <p className="text-sm text-destructive">{formErrors.role}</p>
+                        )}
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleCreateUser}>Crear Usuario</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-muted-foreground">Cargando usuarios...</div>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No hay usuarios registrados</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <h4 className="font-medium">{user.full_name || user.username}</h4>
+                            <p className="text-sm text-muted-foreground">@{user.username}</p>
+                          </div>
+                          <Badge variant={getRoleBadgeVariant(user.role)}>
+                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                          </Badge>
+                          <Badge variant={getStatusBadgeVariant(user.status)}>
+                            {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleStatus(user.id, user.status)}
+                        >
+                          {user.status === 'activo' ? 'Desactivar' : 'Activar'}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Sistema */}
+        {/* System Configuration */}
         <TabsContent value="system" className="space-y-6">
           <Card className="shadow-card">
             <CardHeader>
@@ -354,137 +375,42 @@ export default function Settings() {
               <Separator />
 
               <div>
-                <h4 className="font-medium mb-4">Respaldo de Datos</h4>
+                <h4 className="font-medium mb-4">Notificaciones</h4>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Respaldo Automático</Label>
-                      <p className="text-sm text-muted-foreground">Último respaldo: 22/01/2024 a las 02:00</p>
+                      <Label>Notificaciones por Email</Label>
+                      <p className="text-sm text-muted-foreground">Enviar notificaciones por correo electrónico</p>
                     </div>
-                    <Switch defaultChecked />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline">Crear Respaldo</Button>
-                    <Button variant="outline">Descargar Respaldo</Button>
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Integración API</h4>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Clave API</Label>
-                    <div className="flex gap-2">
-                      <Input value="••••••••••••••••••••••••••••••••" readOnly />
-                      <Button variant="outline">Regenerar</Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Usa esta clave para integrar sistemas externos con Up & Down Lift
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Móvil */}
-        <TabsContent value="mobile" className="space-y-6">
-          <Card className="shadow-card">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Smartphone className="h-5 w-5" />
-                <CardTitle>Configuración Móvil</CardTitle>
-              </div>
-              <CardDescription>
-                Optimiza la experiencia móvil para operarios y técnicos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h4 className="font-medium mb-4">Funciones Offline</h4>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Modo Offline</Label>
-                      <p className="text-sm text-muted-foreground">Permitir creación de inspecciones sin conexión</p>
-                    </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={notifications.email}
+                      onCheckedChange={(checked) => handleNotificationChange("email", checked)}
+                    />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label>Sincronización Automática</Label>
-                      <p className="text-sm text-muted-foreground">Sincronizar cuando haya conexión disponible</p>
+                      <Label>Notificaciones de Mantenimiento</Label>
+                      <p className="text-sm text-muted-foreground">Recordatorios de mantenimiento programado</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={notifications.maintenance}
+                      onCheckedChange={(checked) => handleNotificationChange("maintenance", checked)}
+                    />
                   </div>
                 </div>
               </div>
 
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Captura de Fotos</h4>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Calidad de Imagen</Label>
-                    <Select defaultValue="medium">
-                      <SelectTrigger className="max-w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Baja (más rápido)</SelectItem>
-                        <SelectItem value="medium">Media (recomendado)</SelectItem>
-                        <SelectItem value="high">Alta (mejor calidad)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Compresión Automática</Label>
-                      <p className="text-sm text-muted-foreground">Reducir tamaño de archivos para ahorrar datos</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="font-medium mb-4">Ubicación GPS</h4>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Rastreo de Ubicación</Label>
-                      <p className="text-sm text-muted-foreground">Registrar ubicación en inspecciones y firmas</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Precisión Requerida (metros)</Label>
-                    <Input type="number" defaultValue="100" className="max-w-32" />
-                  </div>
-                </div>
+              <div className="pt-6">
+                <Button>
+                  <Save className="h-4 w-4 mr-2" />
+                  Guardar Configuración
+                </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Botón de guardar */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} size="lg">
-          <Save className="h-4 w-4 mr-2" />
-          Guardar Cambios
-        </Button>
-      </div>
     </div>
   );
 }
