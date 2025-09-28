@@ -19,6 +19,7 @@ import { HourometerInput } from "@/components/preoperational/HourometerInput";
 import { FluidLevelSelector } from "@/components/preoperational/FluidLevelSelector";
 import { ChecklistSection } from "@/components/preoperational/ChecklistSection";
 import { PhotoCapture } from "@/components/preoperational/PhotoCapture";
+import { TireWearSelector } from "@/components/preoperational/TireWearSelector";
 
 interface Project {
   id: string;
@@ -74,7 +75,7 @@ export default function Preoperational() {
     coolant_level: "",
     hydraulic_level: "",
     greased: false,
-    tires_wear: "",
+    tires_wear: "alto",
     tires_punctured: false,
     tires_bearing_issue: false,
     tires_action: "none",
@@ -169,12 +170,19 @@ export default function Preoperational() {
     if (!selectedProject) errors.push("Debe seleccionar un proyecto");
     if (!selectedMachine) errors.push("Debe seleccionar una máquina");
     if (!formData.hydraulic_level) errors.push("Debe indicar el nivel hidráulico");
+    if (!formData.fuel_level) errors.push("Debe indicar el nivel de combustible");
+    if (!formData.oil_level) errors.push("Debe indicar el nivel de aceite");
+    if (!formData.coolant_level) errors.push("Debe indicar el nivel de refrigerante");
+    if (!formData.tires_wear) errors.push("Debe indicar el desgaste de llantas");
     if (formData.hours_worked > 24) errors.push("Las horas trabajadas no pueden exceder 24");
+    if (formData.hours_worked < 0) errors.push("Las horas trabajadas no pueden ser negativas");
     
     // Check if critical items need photos
     const needsPhoto = formData.tires_action !== "none" || 
                       formData.hoses_status !== "bueno" || 
-                      formData.lights_status !== "bueno";
+                      formData.lights_status !== "bueno" ||
+                      formData.tires_punctured ||
+                      formData.tires_bearing_issue;
     
     if (needsPhoto && photos.length === 0) {
       errors.push("Debe adjuntar al menos una foto cuando hay elementos que requieren reparación");
@@ -378,6 +386,54 @@ export default function Preoperational() {
               </CardContent>
             </Card>
 
+            {/* Tires */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Inspección de Llantas</CardTitle>
+                <CardDescription>Verifique el estado de las llantas del equipo</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <TireWearSelector
+                  value={formData.tires_wear}
+                  onChange={(value) => handleFormChange('tires_wear', value)}
+                />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="tires_punctured"
+                      checked={formData.tires_punctured}
+                      onCheckedChange={(checked) => handleFormChange('tires_punctured', checked)}
+                    />
+                    <Label htmlFor="tires_punctured">Llantas pinchadas</Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="tires_bearing_issue"
+                      checked={formData.tires_bearing_issue}
+                      onCheckedChange={(checked) => handleFormChange('tires_bearing_issue', checked)}
+                    />
+                    <Label htmlFor="tires_bearing_issue">Problemas de rodamiento</Label>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Acción Requerida</Label>
+                  <Select value={formData.tires_action} onValueChange={(value) => handleFormChange('tires_action', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccione acción" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sin acción</SelectItem>
+                      <SelectItem value="repair">Reparar</SelectItem>
+                      <SelectItem value="replace">Reemplazar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Greasing */}
             <Card>
               <CardHeader>
@@ -391,6 +447,59 @@ export default function Preoperational() {
                     onCheckedChange={(checked) => handleFormChange('greased', checked)}
                   />
                   <Label htmlFor="greased">Equipos engrasados correctamente</Label>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lights and Hoses */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Luces y Mangueras</CardTitle>
+                <CardDescription>Estado de luces y sistema de mangueras</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Estado de Luces</Label>
+                  <Select value={formData.lights_status} onValueChange={(value) => handleFormChange('lights_status', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado de las luces" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bueno">Bueno</SelectItem>
+                      <SelectItem value="foco_danado">Foco dañado</SelectItem>
+                      <SelectItem value="farola_partida">Farola partida</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formData.lights_status !== "bueno" && (
+                    <Textarea
+                      placeholder="Describa el problema con las luces..."
+                      value={formData.lights_note}
+                      onChange={(e) => handleFormChange('lights_note', e.target.value)}
+                      rows={2}
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Estado de Mangueras</Label>
+                  <Select value={formData.hoses_status} onValueChange={(value) => handleFormChange('hoses_status', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Estado de las mangueras" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bueno">Bueno</SelectItem>
+                      <SelectItem value="requiere_reparacion">Requiere reparación</SelectItem>
+                      <SelectItem value="reemplazo">Reemplazo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formData.hoses_status !== "bueno" && (
+                    <Textarea
+                      placeholder="Describa el problema con las mangueras..."
+                      value={formData.hoses_note}
+                      onChange={(e) => handleFormChange('hoses_note', e.target.value)}
+                      rows={2}
+                    />
+                  )}
                 </div>
               </CardContent>
             </Card>

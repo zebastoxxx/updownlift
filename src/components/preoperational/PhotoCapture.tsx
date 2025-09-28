@@ -133,7 +133,28 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
   };
 
   const handleCameraCapture = () => {
-    cameraInputRef.current?.click();
+    // Check if we're on a mobile device or if camera is supported
+    if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      // Try to access camera first to show better error messages
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then((stream) => {
+          // Stop the stream immediately, we just wanted to check permission
+          stream.getTracks().forEach(track => track.stop());
+          // Now trigger the file input
+          cameraInputRef.current?.click();
+        })
+        .catch((error) => {
+          console.error('Camera access error:', error);
+          toast({
+            title: "Error de cámara",
+            description: "No se puede acceder a la cámara. Verificar permisos o usar 'Subir Archivos'.",
+            variant: "destructive"
+          });
+        });
+    } else {
+      // Fallback for older browsers or unsupported devices
+      cameraInputRef.current?.click();
+    }
   };
 
   const handleFileUpload = () => {
