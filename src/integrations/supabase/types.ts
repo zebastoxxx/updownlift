@@ -105,9 +105,11 @@ export type Database = {
           created_at: string
           current_hours: number | null
           id: string
+          last_corrective_maintenance_date: string | null
           last_greasing_hours: number | null
           last_preop_date: string | null
           last_preop_id: string | null
+          last_preventive_maintenance_date: string | null
           location: string | null
           model: string | null
           name: string
@@ -123,9 +125,11 @@ export type Database = {
           created_at?: string
           current_hours?: number | null
           id?: string
+          last_corrective_maintenance_date?: string | null
           last_greasing_hours?: number | null
           last_preop_date?: string | null
           last_preop_id?: string | null
+          last_preventive_maintenance_date?: string | null
           location?: string | null
           model?: string | null
           name: string
@@ -141,9 +145,11 @@ export type Database = {
           created_at?: string
           current_hours?: number | null
           id?: string
+          last_corrective_maintenance_date?: string | null
           last_greasing_hours?: number | null
           last_preop_date?: string | null
           last_preop_id?: string | null
+          last_preventive_maintenance_date?: string | null
           location?: string | null
           model?: string | null
           name?: string

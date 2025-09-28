@@ -17,6 +17,9 @@ const machineSchema = z.object({
   location: z.string().optional(),
   status: z.enum(['operativo', 'mantenimiento', 'fuera_de_servicio']),
   current_hours: z.number().min(0).optional(),
+  next_certification_date: z.string().optional(),
+  last_corrective_maintenance_date: z.string().optional(),
+  last_preventive_maintenance_date: z.string().optional(),
 });
 
 type MachineFormData = z.infer<typeof machineSchema>;
@@ -30,6 +33,9 @@ interface Machine {
   location?: string;
   status: string;
   current_hours?: number;
+  next_certification_date?: string;
+  last_corrective_maintenance_date?: string;
+  last_preventive_maintenance_date?: string;
 }
 
 interface MachineFormProps {
@@ -50,6 +56,9 @@ export function MachineForm({ isOpen, onClose, onMachineCreated, machine }: Mach
     location: machine?.location || '',
     status: (machine?.status as any) || 'operativo',
     current_hours: machine?.current_hours || 0,
+    next_certification_date: machine?.next_certification_date || '',
+    last_corrective_maintenance_date: machine?.last_corrective_maintenance_date || '',
+    last_preventive_maintenance_date: machine?.last_preventive_maintenance_date || '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -126,6 +135,9 @@ export function MachineForm({ isOpen, onClose, onMachineCreated, machine }: Mach
         location: '',
         status: 'operativo',
         current_hours: 0,
+        next_certification_date: '',
+        last_corrective_maintenance_date: '',
+        last_preventive_maintenance_date: '',
       });
     } catch (error) {
       console.error('Error saving machine:', error);
@@ -225,7 +237,7 @@ export function MachineForm({ isOpen, onClose, onMachineCreated, machine }: Mach
               </Select>
             </div>
 
-            <div className="space-y-2 col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="current_hours">Horas Actuales</Label>
               <Input
                 id="current_hours"
@@ -234,6 +246,36 @@ export function MachineForm({ isOpen, onClose, onMachineCreated, machine }: Mach
                 value={formData.current_hours}
                 onChange={(e) => handleInputChange('current_hours', parseFloat(e.target.value) || 0)}
                 placeholder="0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="next_certification_date">Vencimiento Certificado ONAC</Label>
+              <Input
+                id="next_certification_date"
+                type="date"
+                value={formData.next_certification_date}
+                onChange={(e) => handleInputChange('next_certification_date', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="last_corrective_maintenance_date">Último Mantenimiento Correctivo</Label>
+              <Input
+                id="last_corrective_maintenance_date"
+                type="date"
+                value={formData.last_corrective_maintenance_date}
+                onChange={(e) => handleInputChange('last_corrective_maintenance_date', e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="last_preventive_maintenance_date">Último Mantenimiento Preventivo</Label>
+              <Input
+                id="last_preventive_maintenance_date"
+                type="date"
+                value={formData.last_preventive_maintenance_date}
+                onChange={(e) => handleInputChange('last_preventive_maintenance_date', e.target.value)}
               />
             </div>
           </div>
