@@ -560,11 +560,33 @@ export default function Preoperational() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {renderHeader()}
-      <div className="max-w-2xl mx-auto">
-        {renderStepContent()}
+    <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-7xl">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold">Preoperacional</h1>
+        <p className="text-muted-foreground">
+          Realiza inspecciones preoperacionales y consulta el historial
+        </p>
       </div>
+
+      <Tabs defaultValue="form" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="form">Nueva Inspección</TabsTrigger>
+          <TabsTrigger value="history">Historial</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="form" className="space-y-6">
+          <div className="min-h-screen bg-background">
+            {renderHeader()}
+            <div className="max-w-2xl mx-auto">
+              {renderStepContent()}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          <PreoperationalHistory />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
