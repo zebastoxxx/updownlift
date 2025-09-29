@@ -9,6 +9,7 @@ import { AdaptiveDataView } from "@/components/ui/adaptive-data-view";
 import { ProjectMobileCard } from "@/components/projects/ProjectMobileCard";
 import { Search, Plus, Filter, Download, Building, Grid, List, MapPin, Calendar, Users, ChevronDown, ArrowUpDown } from "lucide-react";
 import { ProjectForm } from "@/components/projects/ProjectForm";
+import { ProjectDetailModal } from "@/components/projects/ProjectDetailModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +39,7 @@ export default function Projects() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
@@ -82,6 +84,11 @@ export default function Projects() {
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
     setIsFormOpen(true);
+  };
+
+  const handleView = (project: Project) => {
+    setSelectedProject(project);
+    setIsDetailOpen(true);
   };
 
   const handleDelete = async (project: Project) => {
@@ -456,6 +463,7 @@ export default function Projects() {
                 searchPlaceholder="Buscar proyectos..."
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onView={handleView}
                 onBulkDelete={handleBulkDelete}
                 enableMultiSelect={true}
                 mobileCardComponent={(project) => (
@@ -493,6 +501,16 @@ export default function Projects() {
           }}
           onProjectCreated={handleProjectCreated}
           project={selectedProject}
+        />
+
+        {/* Project Detail Modal */}
+        <ProjectDetailModal
+          project={selectedProject}
+          open={isDetailOpen}
+          onOpenChange={(open) => {
+            setIsDetailOpen(open);
+            if (!open) setSelectedProject(null);
+          }}
         />
       </div>
     </div>

@@ -56,6 +56,7 @@ export function ProjectForm({ open, onOpenChange, onProjectCreated, project }: P
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);
   const [selectedMachinesByClient, setSelectedMachinesByClient] = useState<Record<string, Machine[]>>({});
+  const [isLoading, setIsLoading] = useState(false);
   
   const initialData = {
     name: "",
@@ -69,9 +70,99 @@ export function ProjectForm({ open, onOpenChange, onProjectCreated, project }: P
     status: "planificacion"
   };
   
-  const [formData, setFormData] = useState<ProjectFormData>(
-    project ? { ...initialData, ...project } : initialData
-  );
+  const [formData, setFormData] = useState<ProjectFormData>(initialData);
+
+  // Load project data when editing
+  useEffect(() => {
+    const loadProjectData = async () => {
+      if (project && open) {
+        setIsLoading(true);
+        try {
+          // Set form data
+          setFormData({
+            name: project.name || "",
+            description: project.description || "",
+            location: project.location || "",
+            city: project.city || "",
+            country: project.country || "Colombia",
+            address: project.address || "",
+            start_date: project.start_date || "",
+            end_date: project.end_date || "",
+            status: project.status || "planificacion"
+          });
+
+          // Load associated clients
+          const { data: projectClients, error: clientsError } = await supabase
+            .from('project_clients')
+            .select(`
+              clients (
+                id,
+                name,
+                email,
+                phone,
+                city,
+                contact_person,
+                status
+              )
+            `)
+            .eq('project_id', project.id);
+
+          if (clientsError) throw clientsError;
+
+          const clients = projectClients?.map(pc => pc.clients).filter(Boolean) as Client[] || [];
+          setSelectedClients(clients);
+
+          // Load associated machines grouped by client
+          const { data: projectMachines, error: machinesError } = await supabase
+            .from('project_machines')
+            .select(`
+              machines (
+                id,
+                name,
+                model,
+                brand,
+                current_hours,
+                status
+              )
+            `)
+            .eq('project_id', project.id);
+
+          if (machinesError) throw machinesError;
+
+          // Group machines by client (assuming all machines belong to the first client for now)
+          // In a real scenario, you might need a client_machines table to properly map this
+          const machines = projectMachines?.map(pm => pm.machines).filter(Boolean) as Machine[] || [];
+          
+          if (clients.length > 0 && machines.length > 0) {
+            // For now, assign all machines to the first client
+            // This should be improved based on your business logic
+            const machinesByClient: Record<string, Machine[]> = {};
+            clients.forEach(client => {
+              machinesByClient[client.id] = machines;
+            });
+            setSelectedMachinesByClient(machinesByClient);
+          }
+
+        } catch (error) {
+          console.error('Error loading project data:', error);
+          toast({
+            title: "Error",
+            description: "No se pudo cargar la información del proyecto",
+            variant: "destructive"
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      } else if (!project) {
+        // Reset form for new project
+        setFormData(initialData);
+        setSelectedClients([]);
+        setSelectedMachinesByClient({});
+      }
+    };
+
+    loadProjectData();
+  }, [project, open]);
 
   const handleFormChange = (field: keyof ProjectFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
