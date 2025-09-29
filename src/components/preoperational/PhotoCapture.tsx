@@ -1,17 +1,12 @@
 import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Photo {
-  type: string;
   file: File;
   preview: string;
-  caption?: string;
 }
 
 interface PhotoCaptureProps {
@@ -20,20 +15,7 @@ interface PhotoCaptureProps {
   onPhotoRemove: (index: number) => void;
 }
 
-const PHOTO_TYPES = [
-  { value: "general", label: "General" },
-  { value: "manguera", label: "Mangueras" },
-  { value: "llanta", label: "Llantas/Orugas" },
-  { value: "luz", label: "Luces" },
-  { value: "fuga", label: "Fugas" },
-  { value: "rodamiento", label: "Rodamientos" },
-  { value: "tablero", label: "Tablero/Alertas" },
-  { value: "lugar", label: "Lugar de trabajo" }
-];
-
 export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCaptureProps) {
-  const [selectedType, setSelectedType] = useState("general");
-  const [currentCaption, setCurrentCaption] = useState("");
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -92,63 +74,87 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
   const handleFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     
-    const file = files[0];
-    
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Archivo no válido",
-        description: "Solo se permiten archivos de imagen",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate file size (20MB max)
-    if (file.size > 20 * 1024 * 1024) {
-      toast({
-        title: "Archivo muy grande",
-        description: "El archivo no debe exceder 20MB",
-        variant: "destructive"
-      });
-      return;
-    }
+    const validFiles = Array.from(files).filter(file => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Archivo no válido",
+          description: `${file.name} no es una imagen válida`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      // Validate file size (20MB max)
+      if (file.size > 20 * 1024 * 1024) {
+        toast({
+          title: "Archivo muy grande",
+          description: `${file.name} no debe exceder 20MB`,
+          variant: "destructive"
+        });
+        return false;
+      }
+      
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
 
     try {
-      // Compress image
-      const compressedFile = await compressImage(file);
-      
-      // Create preview
-      const preview = URL.createObjectURL(compressedFile);
-      
-      const photo: Photo = {
-        type: selectedType,
-        file: compressedFile,
-        preview,
-        caption: currentCaption || undefined
-      };
-      
-      onPhotoAdd(photo);
-      setCurrentCaption("");
+      for (const file of validFiles) {
+        // Compress image
+        const compressedFile = await compressImage(file);
+        
+        // Create preview
+        const preview = URL.createObjectURL(compressedFile);
+        
+        const photo: Photo = {
+          file: compressedFile,
+          preview
+        };
+        
+        onPhotoAdd(photo);
+      }
       
       toast({
-        title: "Foto agregada",
-        description: `Foto ${selectedType} agregada correctamente`,
+        title: "Fotos agregadas",
+        description: `${validFiles.length} foto${validFiles.length !== 1 ? 's' : ''} agregada${validFiles.length !== 1 ? 's' : ''} correctamente`,
         variant: "default"
       });
       
     } catch (error) {
-      console.error('Error processing image:', error);
+      console.error('Error processing images:', error);
       toast({
         title: "Error",
-        description: "No se pudo procesar la imagen",
+        description: "No se pudieron procesar algunas imágenes",
         variant: "destructive"
       });
     }
   };
 
   const handleCameraCapture = () => {
-    cameraInputRef.current?.click();
+    // Check if we're on a mobile device or if camera is supported
+    if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      // Try to access camera first to show better error messages
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then((stream) => {
+          // Stop the stream immediately, we just wanted to check permission
+          stream.getTracks().forEach(track => track.stop());
+          // Now trigger the file input
+          cameraInputRef.current?.click();
+        })
+        .catch((error) => {
+          console.error('Camera access error:', error);
+          toast({
+            title: "Error de cámara",
+            description: "No se puede acceder a la cámara. Verificar permisos o usar 'Subir Archivos'.",
+            variant: "destructive"
+          });
+        });
+    } else {
+      // Fallback for older browsers or unsupported devices
+      cameraInputRef.current?.click();
+    }
   };
 
   const handleFileUpload = () => {
@@ -175,34 +181,6 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Photo Type Selection */}
-        <div className="space-y-2">
-          <Label>Tipo de Foto</Label>
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PHOTO_TYPES.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  {type.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Caption */}
-        <div className="space-y-2">
-          <Label htmlFor="photo-caption">Descripción (Opcional)</Label>
-          <Input
-            id="photo-caption"
-            placeholder="Describa lo que muestra la foto..."
-            value={currentCaption}
-            onChange={(e) => setCurrentCaption(e.target.value)}
-          />
-        </div>
-
         {/* Capture Buttons */}
         <div className="grid grid-cols-2 gap-3">
           <Button
@@ -219,7 +197,7 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
             className="h-12"
           >
             <Upload className="h-5 w-5 mr-2" />
-            Subir Archivo
+            Subir Archivos
           </Button>
         </div>
 
@@ -236,6 +214,7 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           onChange={(e) => handleFileSelect(e.target.files)}
           className="hidden"
         />
@@ -243,26 +222,16 @@ export function PhotoCapture({ photos, onPhotoAdd, onPhotoRemove }: PhotoCapture
         {/* Photo Grid */}
         {photos.length > 0 && (
           <div className="space-y-3">
-            <Label>Fotos Capturadas</Label>
+            <div className="text-sm font-medium">Fotos Capturadas</div>
             <div className="grid grid-cols-2 gap-3">
               {photos.map((photo, index) => (
                 <div key={index} className="relative group">
                   <div className="aspect-square rounded-lg overflow-hidden border bg-muted">
                     <img
                       src={photo.preview}
-                      alt={`Foto ${photo.type}`}
+                      alt={`Foto ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                  </div>
-                  
-                  {/* Photo Info Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 text-xs">
-                    <p className="font-medium capitalize">
-                      {PHOTO_TYPES.find(t => t.value === photo.type)?.label}
-                    </p>
-                    {photo.caption && (
-                      <p className="truncate">{photo.caption}</p>
-                    )}
                   </div>
                   
                   {/* Remove Button */}

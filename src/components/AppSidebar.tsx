@@ -37,13 +37,8 @@ export function AppSidebar() {
   const getNavigationItems = () => {
     const items = [];
     
-    // Dashboard - only for administrators
-    if (hasPermission("administrador")) {
-      items.push({ title: "Dashboard", url: "/", icon: BarChart3 });
-    }
-    
-    // Preoperational - available for all authenticated users
-    items.push({ title: "Preoperacional", url: "/preoperational", icon: ClipboardCheck });
+    // Preoperational - available for all authenticated users (now home page)
+    items.push({ title: "Preoperacional", url: "/", icon: ClipboardCheck });
     
     // Machines, Clients, Projects - for supervisors and administrators
     if (hasPermission("supervisor")) {

@@ -6,13 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Settings as SettingsIcon, User, Database, UserPlus, Edit2, Trash2, Users, Save } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
+import { DetailModal } from "@/components/ui/detail-modal";
+import { Database, UserPlus, Users, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { createSortableHeader } from "@/components/ui/data-table";
 import { z } from "zod";
 
 interface User {
@@ -35,8 +37,8 @@ export default function Settings() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     full_name: "",
@@ -45,6 +47,7 @@ export default function Settings() {
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const { toast } = useToast();
+  const { hasPermission } = useAuth();
 
   const [notifications, setNotifications] = useState({
     email: true,
@@ -136,31 +139,62 @@ export default function Settings() {
     }
   };
 
-  const handleToggleStatus = async (userId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'activo' ? 'inactivo' : 'activo';
-    
+  const handleEditUser = async (updatedData: Record<string, any>) => {
+    if (!selectedUser) return;
+
     try {
       const { error } = await supabase
         .from('users')
-        .update({ status: newStatus })
-        .eq('id', userId);
+        .update(updatedData)
+        .eq('id', selectedUser.id);
 
       if (error) throw error;
 
       toast({
-        title: "Estado actualizado",
-        description: `Usuario ${newStatus === 'activo' ? 'activado' : 'desactivado'} exitosamente`,
+        title: "Usuario actualizado",
+        description: "El usuario ha sido actualizado exitosamente",
+      });
+
+      loadUsers();
+      setDetailModalOpen(false);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el usuario",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Usuario eliminado",
+        description: "El usuario ha sido eliminado exitosamente",
       });
 
       loadUsers();
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error deleting user:', error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar el estado del usuario",
+        description: "No se pudo eliminar el usuario",
         variant: "destructive",
       });
     }
+  };
+
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setDetailModalOpen(true);
   };
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -179,6 +213,70 @@ export default function Settings() {
   const getStatusBadgeVariant = (status: string) => {
     return status === 'activo' ? 'default' : 'destructive';
   };
+
+  const columns = [
+    {
+      id: "username",
+      header: createSortableHeader("Usuario"),
+      accessorKey: "username",
+    },
+    {
+      id: "full_name",
+      header: createSortableHeader("Nombre Completo"),
+      accessorKey: "full_name",
+      cell: ({ row }: any) => row.original.full_name || "-",
+    },
+    {
+      id: "role",
+      header: "Rol",
+      cell: ({ row }: any) => (
+        <Badge variant={getRoleBadgeVariant(row.original.role)}>
+          {row.original.role.charAt(0).toUpperCase() + row.original.role.slice(1)}
+        </Badge>
+      ),
+    },
+    {
+      id: "status",
+      header: "Estado",
+      cell: ({ row }: any) => (
+        <Badge variant={getStatusBadgeVariant(row.original.status)}>
+          {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
+        </Badge>
+      ),
+    },
+    {
+      id: "created_at",
+      header: createSortableHeader("Fecha de Creación"),
+      accessorKey: "created_at",
+      cell: ({ row }: any) => new Date(row.original.created_at).toLocaleDateString(),
+    },
+  ];
+
+  const userDetailFields = [
+    { key: 'username', label: 'Usuario', type: 'text' as const, editable: true, section: 'general' },
+    { key: 'full_name', label: 'Nombre Completo', type: 'text' as const, editable: true, section: 'general' },
+    { key: 'role', label: 'Rol', type: 'select' as const, options: [
+      { value: 'operario', label: 'Operario' },
+      { value: 'supervisor', label: 'Supervisor' },
+      { value: 'administrador', label: 'Administrador' }
+    ], editable: true, section: 'general' },
+    { key: 'status', label: 'Estado', type: 'select' as const, options: [
+      { value: 'activo', label: 'Activo' },
+      { value: 'inactivo', label: 'Inactivo' }
+    ], editable: true, section: 'general' },
+    { key: 'created_at', label: 'Fecha de Creación', type: 'text' as const, format: (value: string) => new Date(value).toLocaleString(), section: 'informacion' },
+  ];
+
+  if (!hasPermission("administrador")) {
+    return (
+      <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-6xl">
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold mb-2">Acceso Denegado</h2>
+          <p className="text-muted-foreground">No tienes permisos para acceder a esta página.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6 max-w-6xl">
@@ -293,45 +391,14 @@ export default function Settings() {
               </div>
             </CardHeader>
             <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-muted-foreground">Cargando usuarios...</div>
-                </div>
-              ) : users.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No hay usuarios registrados</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <h4 className="font-medium">{user.full_name || user.username}</h4>
-                            <p className="text-sm text-muted-foreground">@{user.username}</p>
-                          </div>
-                          <Badge variant={getRoleBadgeVariant(user.role)}>
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </Badge>
-                          <Badge variant={getStatusBadgeVariant(user.status)}>
-                            {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleToggleStatus(user.id, user.status)}
-                        >
-                          {user.status === 'activo' ? 'Desactivar' : 'Activar'}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <DataTable
+                columns={columns}
+                data={users}
+                onView={handleViewUser}
+                onDelete={handleDeleteUser}
+                enableColumnVisibility={true}
+                searchPlaceholder="Buscar usuarios..."
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -372,8 +439,6 @@ export default function Settings() {
                 </div>
               </div>
 
-              <Separator />
-
               <div>
                 <h4 className="font-medium mb-4">Notificaciones</h4>
                 <div className="space-y-4">
@@ -411,6 +476,17 @@ export default function Settings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {selectedUser && (
+        <DetailModal
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          title={`Usuario - ${selectedUser.username}`}
+          data={selectedUser}
+          fields={userDetailFields}
+          onSave={handleEditUser}
+        />
+      )}
     </div>
   );
 }

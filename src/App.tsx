@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
-import Dashboard from "./pages/Dashboard";
+
 import Machines from "./pages/Machines";
 import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
@@ -29,9 +29,9 @@ const App = () => (
             <Route
               path="/"
               element={
-                <ProtectedRoute requiredRole="administrador">
+                <ProtectedRoute>
                   <Layout>
-                    <Dashboard />
+                    <Preoperational />
                   </Layout>
                 </ProtectedRoute>
               }
