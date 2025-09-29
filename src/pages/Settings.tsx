@@ -256,6 +256,7 @@ export default function Settings() {
   const userDetailFields = [
     { key: 'username', label: 'Usuario', type: 'text' as const, editable: true, section: 'general' },
     { key: 'full_name', label: 'Nombre Completo', type: 'text' as const, editable: true, section: 'general' },
+    { key: 'password_hash', label: 'Contraseña', type: 'text' as const, editable: true, section: 'general' },
     { key: 'role', label: 'Rol', type: 'select' as const, options: [
       { value: 'operario', label: 'Operario' },
       { value: 'supervisor', label: 'Supervisor' },
