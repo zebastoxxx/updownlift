@@ -3,8 +3,6 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PWAInstallBanner } from "@/components/ui/pwa-install-banner";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { LogOut } from "lucide-react";
@@ -25,8 +23,6 @@ export default function Layout({
     await signOut();
   };
   return <SidebarProvider>
-      <Toaster />
-      <Sonner />
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
