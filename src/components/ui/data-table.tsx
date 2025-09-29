@@ -100,7 +100,7 @@ export function DataTable<TData, TValue>({
         id: "actions",
         header: "Acciones",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             {onView && (
               <Button
                 variant="ghost"
@@ -250,6 +250,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={onView ? "cursor-pointer hover:bg-muted/50 transition-colors" : ""}
+                  onClick={() => onView && onView(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

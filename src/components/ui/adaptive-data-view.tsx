@@ -10,6 +10,7 @@ interface AdaptiveDataViewProps<T> {
   searchPlaceholder?: string;
   onEdit?: (item: T) => void;
   onDelete?: (item: T) => void;
+  onView?: (item: T) => void;
   onBulkDelete?: (items: T[]) => void;
   enableMultiSelect?: boolean;
   mobileCardComponent: (item: T) => ReactNode;
@@ -24,6 +25,7 @@ export function AdaptiveDataView<T>({
   searchPlaceholder,
   onEdit,
   onDelete,
+  onView,
   onBulkDelete,
   enableMultiSelect = false,
   mobileCardComponent,
@@ -50,6 +52,7 @@ export function AdaptiveDataView<T>({
         searchPlaceholder={searchPlaceholder}
         onEdit={onEdit}
         onDelete={onDelete}
+        onView={onView}
         onBulkDelete={onBulkDelete}
         enableMultiSelect={enableMultiSelect}
       />

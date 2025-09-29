@@ -369,17 +369,21 @@ export function PreoperationalHistory() {
       </Card>
 
       {selectedRecord && (
-        <>
-          <DetailModal
-            open={detailModalOpen}
-            onOpenChange={setDetailModalOpen}
-            title={`Preoperacional - ${selectedRecord.machines?.name || 'Sin máquina'}`}
-            data={selectedRecord}
-            fields={detailFields}
-            onSave={handleEdit}
-          />
-          {detailModalOpen && <PreoperationalPhotos preoperationalId={selectedRecord.id} />}
-        </>
+        <DetailModal
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          title={`Preoperacional - ${selectedRecord.machines?.name || 'Sin máquina'}`}
+          data={selectedRecord}
+          fields={detailFields}
+          onSave={handleEdit}
+          tabs={[
+            {
+              key: 'photos',
+              label: 'Fotos',
+              content: <PreoperationalPhotos preoperationalId={selectedRecord.id} />
+            }
+          ]}
+        />
       )}
     </div>
   );
