@@ -35,7 +35,7 @@ export function ProjectSelector({ onProjectSelect, selectedProject }: ProjectSel
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('status', 'activo')
+        .in('status', ['activo', 'planificacion'])
         .order('name');
 
       if (error) throw error;
