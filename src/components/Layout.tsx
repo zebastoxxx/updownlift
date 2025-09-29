@@ -3,35 +3,26 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PWAInstallBanner } from "@/components/ui/pwa-install-banner";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
+
 interface LayoutProps {
   children: React.ReactNode;
 }
 export default function Layout({
   children
 }: LayoutProps) {
-  const {
-    signOut,
-    user
-  } = useAuth();
-  const isMobile = useIsMobile();
   const handleLogout = async () => {
-    await signOut();
+    // Temporarily disable logout functionality
+    console.log("Logout clicked");
   };
   return <SidebarProvider>
-      <Toaster />
-      <Sonner />
       <div className="flex min-h-screen w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className={cn("h-16 border-b bg-gradient-header flex items-center justify-between px-4 sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60", isMobile && "h-14")}>
+          <header className={cn("h-16 border-b bg-gradient-header flex items-center justify-between px-4 sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60")}>
             <div className="flex items-center gap-4">
               <SidebarTrigger className="-ml-1" />
               <div className="flex items-center gap-3">
@@ -44,7 +35,7 @@ export default function Layout({
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="hidden sm:flex">
-                {user?.full_name || user?.username || 'Usuario'}
+                Usuario
               </Badge>
               <Button variant="outline" size="sm" onClick={handleLogout} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />

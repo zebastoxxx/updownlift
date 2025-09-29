@@ -22,10 +22,11 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
-  const { open } = useSidebar();
-  const { user, hasPermission } = useAuth();
-  const location = useLocation();
-  const currentPath = location.pathname;
+  // Temporarily disable hooks
+  const open = true;
+  const user = null;
+  const hasPermission = (role: string) => true;
+  const currentPath = "/";
 
   const isActive = (path: string) => currentPath === path;
   const getNavClasses = ({ isActive }: { isActive: boolean }) =>
