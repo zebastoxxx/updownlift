@@ -176,6 +176,58 @@ export function PreoperationalHistory() {
     }
   };
 
+  const handleDelete = async (record: PreoperationalRecord) => {
+    try {
+      const { error } = await supabase
+        .from('preoperational')
+        .delete()
+        .eq('id', record.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Registro eliminado correctamente",
+      });
+
+      loadRecords();
+    } catch (error) {
+      console.error('Error deleting record:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el registro",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleBulkDelete = async (records: PreoperationalRecord[]) => {
+    try {
+      const recordIds = records.map(record => record.id);
+      
+      const { error } = await supabase
+        .from('preoperational')
+        .delete()
+        .in('id', recordIds);
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: `${records.length} registros eliminados correctamente`,
+      });
+
+      loadRecords();
+    } catch (error) {
+      console.error('Error deleting records:', error);
+      toast({
+        title: "Error",
+        description: "No se pudieron eliminar los registros",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       'synced': 'default',
@@ -234,8 +286,17 @@ export function PreoperationalHistory() {
     },
     {
       id: "sync_status",
-      header: "Estado",
-      cell: ({ row }: any) => getStatusBadge(row.original.sync_status),
+      header: "Estado de Sincronización",
+      cell: ({ row }: any) => (
+        <div className="flex flex-col gap-1">
+          {getStatusBadge(row.original.sync_status)}
+          <span className="text-xs text-muted-foreground">
+            {row.original.sync_status === 'synced' && 'Sincronizado con sistema'}
+            {row.original.sync_status === 'pending' && 'Pendiente de sincronización'}
+            {row.original.sync_status === 'error' && 'Error en sincronización'}
+          </span>
+        </div>
+      ),
     },
   ];
 
@@ -356,6 +417,9 @@ export function PreoperationalHistory() {
             searchKey="username"
             searchPlaceholder="Buscar registros..."
             onView={handleView}
+            onDelete={handleDelete}
+            onBulkDelete={handleBulkDelete}
+            enableMultiSelect={true}
             mobileCardComponent={(record) => (
               <PreoperationalMobileCard
                 record={record}
