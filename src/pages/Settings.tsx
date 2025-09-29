@@ -406,6 +406,7 @@ export default function Settings() {
                   data={users}
                   searchKey="username"
                   searchPlaceholder="Buscar usuarios..."
+                  onView={handleViewUser}
                   mobileCardComponent={(user) => (
                     <UserMobileCard
                       user={user}
