@@ -266,42 +266,39 @@ export function ProjectForm({ open, onOpenChange, onProjectCreated, project }: P
 
       if (projectResult.error) throw projectResult.error;
 
-      // Only update relationships for new projects or when clients/machines change
-      if (!project || selectedClients.length > 0) {
-        // For existing projects, we might want to update relationships too
-        if (project && selectedClients.length > 0) {
-          // Delete existing relationships
-          await supabase.from('project_clients').delete().eq('project_id', project.id);
-          await supabase.from('project_machines').delete().eq('project_id', project.id);
-        }
+      // Update client and machine relationships
+      if (project) {
+        // For editing, delete existing relationships first
+        await supabase.from('project_clients').delete().eq('project_id', project.id);
+        await supabase.from('project_machines').delete().eq('project_id', project.id);
+      }
 
-        if (selectedClients.length > 0) {
-          // Link clients to project
-          const clientInserts = selectedClients.map(client => ({
+      // Link clients to project
+      if (selectedClients.length > 0) {
+        const clientInserts = selectedClients.map(client => ({
+          project_id: projectResult.data.id,
+          client_id: client.id
+        }));
+
+        const { error: clientsError } = await supabase
+          .from('project_clients')
+          .insert(clientInserts);
+
+        if (clientsError) throw clientsError;
+
+        // Link machines to project
+        const allMachines = Object.values(selectedMachinesByClient).flat();
+        if (allMachines.length > 0) {
+          const machineInserts = allMachines.map(machine => ({
             project_id: projectResult.data.id,
-            client_id: client.id
+            machine_id: machine.id
           }));
 
-          const { error: clientsError } = await supabase
-            .from('project_clients')
-            .insert(clientInserts);
+          const { error: machinesError } = await supabase
+            .from('project_machines')
+            .insert(machineInserts);
 
-          if (clientsError) throw clientsError;
-
-          // Link machines to project
-          const allMachines = Object.values(selectedMachinesByClient).flat();
-          if (allMachines.length > 0) {
-            const machineInserts = allMachines.map(machine => ({
-              project_id: projectResult.data.id,
-              machine_id: machine.id
-            }));
-
-            const { error: machinesError } = await supabase
-              .from('project_machines')
-              .insert(machineInserts);
-
-            if (machinesError) throw machinesError;
-          }
+          if (machinesError) throw machinesError;
         }
       }
 
@@ -316,9 +313,9 @@ export function ProjectForm({ open, onOpenChange, onProjectCreated, project }: P
       // Reset form only if creating new project
       if (!project) {
         setFormData(initialData);
+        setSelectedClients([]);
+        setSelectedMachinesByClient({});
       }
-      setSelectedClients([]);
-      setSelectedMachinesByClient({});
 
       onProjectCreated();
       onOpenChange(false);
