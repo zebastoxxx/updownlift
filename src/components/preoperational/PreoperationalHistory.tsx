@@ -4,7 +4,7 @@ import { DataTable, createSortableHeader } from "@/components/ui/data-table";
 import { AdaptiveDataView } from "@/components/ui/adaptive-data-view";
 import { PreoperationalMobileCard } from "@/components/preoperational/PreoperationalMobileCard";
 import { PreoperationalPhotos } from "@/components/preoperational/PreoperationalPhotos";
-import { DetailModal } from "@/components/ui/detail-modal";
+import { PreoperationalViewModal } from "@/components/preoperational/PreoperationalViewModal";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +24,7 @@ interface PreoperationalRecord {
   horometer_initial: number;
   horometer_final: number;
   hours_worked: number;
+  hours_fraction: number;
   oil_level: string;
   hydraulic_level: string;
   coolant_level: string;
@@ -36,12 +37,25 @@ interface PreoperationalRecord {
   hoses_note: string;
   lights_status: string;
   lights_note: string;
+  lights_front_left: any;
+  lights_front_right: any;
+  lights_rear_left: any;
+  lights_rear_right: any;
+  reverse_horn: any;
   greased: boolean;
   checklist: any;
   observations: string;
   sync_status: string;
-  projects?: { name: string } | null;
-  machines?: { name: string } | null;
+  operator_signature_url?: string;
+  supervisor_signature_url?: string;
+  operator_signature_timestamp?: string;
+  supervisor_signature_timestamp?: string;
+  projects?: { name: string; client_name?: string; location?: string } | null;
+  machines?: { name: string; brand?: string; model?: string; serial_number?: string } | null;
+  project?: any;
+  machine?: any;
+  user?: any;
+  photos?: any[];
 }
 
 export function PreoperationalHistory() {
@@ -143,9 +157,79 @@ export function PreoperationalHistory() {
     setFilteredRecords(filtered);
   };
 
-  const handleView = (record: PreoperationalRecord) => {
-    setSelectedRecord(record);
-    setDetailModalOpen(true);
+  const handleView = async (record: PreoperationalRecord) => {
+    try {
+      // Load complete record with all relationships
+      const { data: preopData, error: preopError } = await supabase
+        .from('preoperational')
+        .select('*')
+        .eq('id', record.id)
+        .single();
+
+      if (preopError) throw preopError;
+
+      // Load project data
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', preopData.project_id)
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Load machine data
+      const { data: machineData, error: machineError } = await supabase
+        .from('machines')
+        .select('*')
+        .eq('id', preopData.machine_id)
+        .single();
+
+      if (machineError) throw machineError;
+
+      // Load user data
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', preopData.username)
+        .single();
+
+      // Load photos
+      const { data: photosData } = await supabase
+        .from('preoperational_photos')
+        .select('*')
+        .eq('preoperational_id', record.id);
+
+      // Combine all data
+      const fullRecord = {
+        ...preopData,
+        project: projectData,
+        machine: machineData,
+        user: userData || { username: preopData.username },
+        photos: photosData || [],
+        // Keep the old format for compatibility
+        projects: { 
+          name: projectData.name,
+          client_name: projectData.client_name,
+          location: projectData.location
+        },
+        machines: { 
+          name: machineData.name,
+          brand: machineData.brand,
+          model: machineData.model,
+          serial_number: machineData.serial_number
+        }
+      };
+
+      setSelectedRecord(fullRecord);
+      setDetailModalOpen(true);
+    } catch (error) {
+      console.error('Error loading full record:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo cargar el registro completo",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = async (updatedData: Record<string, any>) => {
@@ -434,20 +518,10 @@ export function PreoperationalHistory() {
       </Card>
 
       {selectedRecord && (
-        <DetailModal
+        <PreoperationalViewModal
           open={detailModalOpen}
           onOpenChange={setDetailModalOpen}
-          title={`Preoperacional - ${selectedRecord.machines?.name || 'Sin máquina'}`}
-          data={selectedRecord}
-          fields={detailFields}
-          onSave={handleEdit}
-          tabs={[
-            {
-              key: 'photos',
-              label: 'Fotos',
-              content: <PreoperationalPhotos preoperationalId={selectedRecord.id} />
-            }
-          ]}
+          record={selectedRecord}
         />
       )}
     </div>
