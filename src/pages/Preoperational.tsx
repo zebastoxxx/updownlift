@@ -291,12 +291,12 @@ export default function Preoperational() {
         const blob = await fetch(operatorSignature).then(r => r.blob());
         const fileName = `operator_${user.id}_${Date.now()}.png`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('preoperational photos')
+          .from('Updown preoperational photos')
           .upload(fileName, blob, { contentType: 'image/png' });
         
         if (!uploadError && uploadData) {
           const { data: { publicUrl } } = supabase.storage
-            .from('preoperational photos')
+            .from('Updown preoperational photos')
             .getPublicUrl(uploadData.path);
           operatorSignatureUrl = publicUrl;
         }
@@ -306,12 +306,12 @@ export default function Preoperational() {
         const blob = await fetch(supervisorSignature).then(r => r.blob());
         const fileName = `supervisor_${user.id}_${Date.now()}.png`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('preoperational photos')
+          .from('Updown preoperational photos')
           .upload(fileName, blob, { contentType: 'image/png' });
         
         if (!uploadError && uploadData) {
           const { data: { publicUrl } } = supabase.storage
-            .from('preoperational photos')
+            .from('Updown preoperational photos')
             .getPublicUrl(uploadData.path);
           supervisorSignatureUrl = publicUrl;
         }
