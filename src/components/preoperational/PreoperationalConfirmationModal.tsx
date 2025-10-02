@@ -44,10 +44,16 @@ interface ChecklistItem {
   comment: string;
 }
 
+interface LightCheck {
+  status: "bueno" | "foco_danado" | "farola_danada" | "no_funciona";
+  note: string;
+}
+
 interface PreoperationalData {
   datetime: string;
   horometer_initial: number;
   hours_worked: number;
+  hours_fraction: number;
   horometer_final: number;
   fuel_level: string;
   oil_level: string;
@@ -76,6 +82,15 @@ interface PreoperationalConfirmationModalProps {
   photos: Photo[];
   user: any;
   isSubmitting: boolean;
+  operatorSignature: string | null;
+  supervisorSignature: string | null;
+  lightsData: {
+    front_left: LightCheck;
+    front_right: LightCheck;
+    rear_left: LightCheck;
+    rear_right: LightCheck;
+    reverse_horn: LightCheck;
+  };
 }
 
 const FLUID_LABELS: Record<string, string> = {
@@ -116,7 +131,10 @@ export function PreoperationalConfirmationModal({
   checklist,
   photos,
   user,
-  isSubmitting
+  isSubmitting,
+  operatorSignature,
+  supervisorSignature,
+  lightsData
 }: PreoperationalConfirmationModalProps) {
   const { toast } = useToast();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -300,7 +318,9 @@ Reporte generado automáticamente`;
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Trabajadas</p>
-                <p className="text-2xl font-bold text-blue-600">{formData.hours_worked}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formData.hours_worked}.{formData.hours_fraction}h
+                </p>
               </div>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Final</p>
@@ -373,30 +393,77 @@ Reporte generado automáticamente`;
             </CardContent>
           </Card>
 
-          {/* Estado de Luces y Mangueras */}
+          {/* Sistema de Luces Detallado */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Estado de Luces y Mangueras</CardTitle>
+              <CardTitle className="text-lg">Sistema de Luces y Pito de Reversa</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Luces</p>
-                <Badge variant={formData.lights_status !== 'bueno' ? 'destructive' : 'default'}>
-                  {STATUS_LABELS[formData.lights_status]}
-                </Badge>
-                {formData.lights_note && (
-                  <p className="text-sm text-muted-foreground mt-1">{formData.lights_note}</p>
-                )}
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-sm font-medium">Luz Delantera Izq.</p>
+                  <Badge variant={lightsData.front_left.status !== 'bueno' ? 'destructive' : 'default'}>
+                    {STATUS_LABELS[lightsData.front_left.status] || lightsData.front_left.status}
+                  </Badge>
+                  {lightsData.front_left.note && (
+                    <p className="text-xs text-muted-foreground mt-1">{lightsData.front_left.note}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Luz Delantera Der.</p>
+                  <Badge variant={lightsData.front_right.status !== 'bueno' ? 'destructive' : 'default'}>
+                    {STATUS_LABELS[lightsData.front_right.status] || lightsData.front_right.status}
+                  </Badge>
+                  {lightsData.front_right.note && (
+                    <p className="text-xs text-muted-foreground mt-1">{lightsData.front_right.note}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Luz Trasera Izq.</p>
+                  <Badge variant={lightsData.rear_left.status !== 'bueno' ? 'destructive' : 'default'}>
+                    {STATUS_LABELS[lightsData.rear_left.status] || lightsData.rear_left.status}
+                  </Badge>
+                  {lightsData.rear_left.note && (
+                    <p className="text-xs text-muted-foreground mt-1">{lightsData.rear_left.note}</p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Luz Trasera Der.</p>
+                  <Badge variant={lightsData.rear_right.status !== 'bueno' ? 'destructive' : 'default'}>
+                    {STATUS_LABELS[lightsData.rear_right.status] || lightsData.rear_right.status}
+                  </Badge>
+                  {lightsData.rear_right.note && (
+                    <p className="text-xs text-muted-foreground mt-1">{lightsData.rear_right.note}</p>
+                  )}
+                </div>
+                <div className="col-span-2">
+                  <p className="text-sm font-medium">Pito de Reversa</p>
+                  <Badge variant={lightsData.reverse_horn.status !== 'bueno' ? 'destructive' : 'default'}>
+                    {STATUS_LABELS[lightsData.reverse_horn.status] || lightsData.reverse_horn.status}
+                  </Badge>
+                  {lightsData.reverse_horn.note && (
+                    <p className="text-xs text-muted-foreground mt-1">{lightsData.reverse_horn.note}</p>
+                  )}
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Mangueras</p>
+            </CardContent>
+          </Card>
+
+          {/* Estado de Mangueras */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Estado de Mangueras</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <span>Mangueras:</span>
                 <Badge variant={formData.hoses_status !== 'bueno' ? 'destructive' : 'default'}>
                   {STATUS_LABELS[formData.hoses_status]}
                 </Badge>
-                {formData.hoses_note && (
-                  <p className="text-sm text-muted-foreground mt-1">{formData.hoses_note}</p>
-                )}
               </div>
+              {formData.hoses_note && (
+                <p className="text-sm text-muted-foreground mt-2">{formData.hoses_note}</p>
+              )}
             </CardContent>
           </Card>
 
@@ -451,6 +518,32 @@ Reporte generado automáticamente`;
               </CardContent>
             </Card>
           )}
+
+          {/* Firmas Digitales */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <User className="h-5 w-5" />
+                Firmas Digitales
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium mb-2">Firma Operador</p>
+                {operatorSignature && (
+                  <img src={operatorSignature} alt="Firma Operador" className="border rounded-md max-h-32 w-full object-contain bg-white" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2">Firma Supervisor (Opcional)</p>
+                {supervisorSignature ? (
+                  <img src={supervisorSignature} alt="Firma Supervisor" className="border rounded-md max-h-32 w-full object-contain bg-white" />
+                ) : (
+                  <p className="text-xs text-muted-foreground italic">Sin firma de supervisor</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Observaciones */}
           {formData.observations && (

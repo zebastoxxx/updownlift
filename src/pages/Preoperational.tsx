@@ -61,7 +61,11 @@ const CHECKLIST_ITEMS = [
   { key: "fugas", label: "Revisión de fugas de aceite" },
   { key: "aire_acondicionado", label: "Funcionamiento aire acondicionado" },
   { key: "llantas_aire", label: "Llantas con suficiente aire" },
-  { key: "oruga_grasa", label: "(Si aplica) Oruga: grasa ok" }
+  { key: "oruga_grasa", label: "(Si aplica) Oruga: grasa ok" },
+  { key: "botiquin", label: "Revisión del botiquín" },
+  { key: "conos", label: "Conos de seguridad disponibles" },
+  { key: "kit_antiderrame", label: "Kit antiderrame completo" },
+  { key: "extintor", label: "Extintor en buen estado y cargado" }
 ];
 
 export default function Preoperational() {
@@ -364,7 +368,17 @@ export default function Preoperational() {
       // Upload photos if any
       if (photos.length > 0) {
         console.log('Uploading photos...');
-        const authToken = localStorage.getItem('auth_token');
+        const { data: { session } } = await supabase.auth.getSession();
+        const authToken = session?.access_token;
+        
+        if (!authToken) {
+          toast({
+            title: "Error de autenticación",
+            description: "No se pudo obtener el token de sesión",
+            variant: "destructive"
+          });
+          return;
+        }
         
         let uploadedCount = 0;
         for (let i = 0; i < photos.length; i++) {
@@ -538,31 +552,31 @@ export default function Preoperational() {
       
       case 3:
         return (
-          <div className="space-y-3 md:space-y-6 p-2 md:p-4">
+          <div className="space-y-2 md:space-y-6 px-1 md:p-4 preop-form-mobile">
             {/* Machine Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="flex items-center gap-2 text-sm md:text-lg preop-title-mobile">
+                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                   Información de la Máquina
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-3 p-3 md:p-6 preop-card-content-mobile">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Proyecto</Label>
-                    <p className="font-medium">{selectedProject?.name}</p>
+                    <Label className="text-muted-foreground text-xs md:text-sm preop-label-mobile">Proyecto</Label>
+                    <p className="font-medium text-xs md:text-base">{selectedProject?.name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Máquina</Label>
-                    <p className="font-medium">{selectedMachine?.name}</p>
+                    <Label className="text-muted-foreground text-xs md:text-sm preop-label-mobile">Máquina</Label>
+                    <p className="font-medium text-xs md:text-base">{selectedMachine?.name}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Modelo</Label>
-                    <p className="font-medium">{selectedMachine?.model}</p>
+                    <Label className="text-muted-foreground text-xs md:text-sm preop-label-mobile">Modelo</Label>
+                    <p className="font-medium text-xs md:text-base">{selectedMachine?.model}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Estado</Label>
+                    <Label className="text-muted-foreground text-xs md:text-sm preop-label-mobile">Estado</Label>
                     <Badge variant={selectedMachine?.status === 'operativo' ? 'default' : 'secondary'}>
                       {selectedMachine?.status}
                     </Badge>
@@ -572,14 +586,14 @@ export default function Preoperational() {
             </Card>
 
             {/* Date and Time - Read Only */}
-            <Card>
-              <CardHeader className="pb-3 md:pb-6">
-                <CardTitle className="text-base md:text-lg">Fecha y Hora (Automática)</CardTitle>
-                <CardDescription className="text-xs md:text-sm">
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:pb-3 md:p-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-base md:text-lg preop-title-mobile">Fecha y Hora (Automática)</CardTitle>
+                <CardDescription className="text-xs md:text-sm preop-description-mobile">
                   Zona horaria: América/Bogotá (Colombia)
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 md:p-6 preop-card-content-mobile">
                 <Input
                   type="text"
                   value={new Date(formData.datetime).toLocaleString('es-CO', { 
@@ -589,7 +603,7 @@ export default function Preoperational() {
                   })}
                   readOnly
                   disabled
-                  className="w-full bg-muted text-sm md:text-base"
+                  className="w-full bg-muted text-xs md:text-sm md:text-base"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
                   Esta fecha y hora se registra automáticamente y no puede modificarse
@@ -609,12 +623,12 @@ export default function Preoperational() {
             />
 
             {/* Fluid Levels */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Niveles de Fluidos</CardTitle>
-                <CardDescription>Indique el estado de cada fluido</CardDescription>
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-lg preop-title-mobile">Niveles de Fluidos</CardTitle>
+                <CardDescription className="text-xs md:text-sm preop-description-mobile">Indique el estado de cada fluido</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-3 md:p-6 preop-card-content-mobile">
                 <FluidLevelSelector
                   label="Combustible"
                   value={formData.fuel_level}
@@ -639,12 +653,12 @@ export default function Preoperational() {
             </Card>
 
             {/* Tires */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Inspección de Llantas</CardTitle>
-                <CardDescription>Verifique el estado de las llantas del equipo</CardDescription>
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-lg preop-title-mobile">Inspección de Llantas</CardTitle>
+                <CardDescription className="text-xs md:text-sm preop-description-mobile">Verifique el estado de las llantas del equipo</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-3 md:p-6 preop-card-content-mobile">
                 <TireWearSelector
                   value={formData.tires_wear}
                   onChange={(value) => handleFormChange('tires_wear', value)}
@@ -687,11 +701,11 @@ export default function Preoperational() {
             </Card>
 
             {/* Greasing */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Engrase</CardTitle>
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-lg preop-title-mobile">Engrase</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 md:p-6 preop-card-content-mobile">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="greased"
@@ -718,12 +732,12 @@ export default function Preoperational() {
             />
 
             {/* Hoses */}
-            <Card>
-              <CardHeader className="pb-3 md:pb-6">
-                <CardTitle className="text-base md:text-lg">Mangueras</CardTitle>
-                <CardDescription className="text-xs md:text-sm">Estado del sistema de mangueras</CardDescription>
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-lg preop-title-mobile">Mangueras</CardTitle>
+                <CardDescription className="text-xs md:text-sm preop-description-mobile">Estado del sistema de mangueras</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-3 md:p-6 preop-card-content-mobile">
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Estado de Mangueras</Label>
                   <Select value={formData.hoses_status} onValueChange={(value) => handleFormChange('hoses_status', value)}>
@@ -764,17 +778,17 @@ export default function Preoperational() {
             />
 
             {/* Observations */}
-            <Card>
-              <CardHeader className="pb-3 md:pb-6">
-                <CardTitle className="text-base md:text-lg">Observaciones Adicionales</CardTitle>
+            <Card className="mx-1 md:mx-0 preop-card-mobile">
+              <CardHeader className="p-3 pb-2 md:pb-3 md:p-6 md:pb-6 preop-card-header-mobile">
+                <CardTitle className="text-sm md:text-base md:text-lg preop-title-mobile">Observaciones Adicionales</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 md:p-6 preop-card-content-mobile">
                 <Textarea
                   placeholder="Describa cualquier observación adicional sobre el estado de la máquina..."
                   value={formData.observations}
                   onChange={(e) => handleFormChange('observations', e.target.value)}
                   rows={4}
-                  className="text-sm"
+                  className="text-xs md:text-sm"
                 />
               </CardContent>
             </Card>
@@ -869,6 +883,9 @@ export default function Preoperational() {
           photos={photos}
           user={user}
           isSubmitting={isSubmitting}
+          operatorSignature={operatorSignature}
+          supervisorSignature={supervisorSignature}
+          lightsData={lightsData}
         />
       )}
     </div>

@@ -37,6 +37,42 @@
   .mobile-padding {
     @apply px-4 py-3;
   }
+  
+  /* Ultra-compact preoperational form */
+  .preop-form-mobile {
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+  }
+  
+  .preop-card-mobile {
+    margin-left: 0.25rem !important;
+    margin-right: 0.25rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .preop-card-header-mobile {
+    padding: 0.75rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+  
+  .preop-card-content-mobile {
+    padding: 0.75rem !important;
+  }
+  
+  .preop-title-mobile {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+  
+  .preop-description-mobile {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+  
+  .preop-label-mobile {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
 }
 
 /* Touch-optimized form inputs */
