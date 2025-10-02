@@ -173,15 +173,25 @@ export type Database = {
           horometer_initial: number | null
           hoses_note: string | null
           hoses_status: string | null
+          hours_fraction: number | null
           hours_worked: number | null
           hydraulic_level: string | null
           id: string
+          lights_front_left: Json | null
+          lights_front_right: Json | null
           lights_note: string | null
+          lights_rear_left: Json | null
+          lights_rear_right: Json | null
           lights_status: string | null
           machine_id: string
           observations: string | null
           oil_level: string | null
+          operator_signature_timestamp: string | null
+          operator_signature_url: string | null
           project_id: string
+          reverse_horn: Json | null
+          supervisor_signature_timestamp: string | null
+          supervisor_signature_url: string | null
           sync_status: string | null
           tires_action: string | null
           tires_bearing_issue: boolean | null
@@ -202,15 +212,25 @@ export type Database = {
           horometer_initial?: number | null
           hoses_note?: string | null
           hoses_status?: string | null
+          hours_fraction?: number | null
           hours_worked?: number | null
           hydraulic_level?: string | null
           id?: string
+          lights_front_left?: Json | null
+          lights_front_right?: Json | null
           lights_note?: string | null
+          lights_rear_left?: Json | null
+          lights_rear_right?: Json | null
           lights_status?: string | null
           machine_id: string
           observations?: string | null
           oil_level?: string | null
+          operator_signature_timestamp?: string | null
+          operator_signature_url?: string | null
           project_id: string
+          reverse_horn?: Json | null
+          supervisor_signature_timestamp?: string | null
+          supervisor_signature_url?: string | null
           sync_status?: string | null
           tires_action?: string | null
           tires_bearing_issue?: boolean | null
@@ -231,15 +251,25 @@ export type Database = {
           horometer_initial?: number | null
           hoses_note?: string | null
           hoses_status?: string | null
+          hours_fraction?: number | null
           hours_worked?: number | null
           hydraulic_level?: string | null
           id?: string
+          lights_front_left?: Json | null
+          lights_front_right?: Json | null
           lights_note?: string | null
+          lights_rear_left?: Json | null
+          lights_rear_right?: Json | null
           lights_status?: string | null
           machine_id?: string
           observations?: string | null
           oil_level?: string | null
+          operator_signature_timestamp?: string | null
+          operator_signature_url?: string | null
           project_id?: string
+          reverse_horn?: Json | null
+          supervisor_signature_timestamp?: string | null
+          supervisor_signature_url?: string | null
           sync_status?: string | null
           tires_action?: string | null
           tires_bearing_issue?: boolean | null

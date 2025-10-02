@@ -7,17 +7,21 @@ import { Clock, Plus, Minus } from "lucide-react";
 interface HourometerInputProps {
   initialHours: number;
   hoursWorked: number;
+  hoursFraction: number;
   finalHours: number;
   onInitialChange: (value: number) => void;
   onWorkedChange: (value: number) => void;
+  onFractionChange: (value: number) => void;
 }
 
 export function HourometerInput({ 
   initialHours, 
   hoursWorked, 
+  hoursFraction,
   finalHours, 
   onInitialChange, 
-  onWorkedChange 
+  onWorkedChange,
+  onFractionChange 
 }: HourometerInputProps) {
   
   const adjustHours = (delta: number) => {
@@ -60,45 +64,100 @@ export function HourometerInput({
           </p>
         </div>
 
-        {/* Hours Worked - Wheel Style Input */}
+        {/* Hours Worked */}
         <div className="space-y-2">
           <Label>Horas Trabajadas</Label>
-          <div className="flex items-center justify-center space-x-4 py-4">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => adjustHours(-0.5)}
-              disabled={hoursWorked <= 0}
-            >
-              <Minus className="h-4 w-4" />
-            </Button>
-            
-            <div className="text-center">
-              <div className="text-3xl font-mono font-bold text-primary">
-                {formatHours(hoursWorked)}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Horas completas */}
+            <div className="space-y-2">
+              <Label htmlFor="hours-worked" className="text-xs text-muted-foreground">
+                Horas completas
+              </Label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => adjustHours(-1)}
+                  disabled={hoursWorked <= 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                
+                <Input
+                  id="hours-worked"
+                  type="number"
+                  min="0"
+                  max="24"
+                  value={hoursWorked}
+                  onChange={(e) => onWorkedChange(Math.min(24, Math.max(0, parseInt(e.target.value) || 0)))}
+                  className="text-center text-lg font-mono"
+                />
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => adjustHours(1)}
+                  disabled={hoursWorked >= 24}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="text-sm text-muted-foreground">horas</div>
             </div>
-            
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => adjustHours(0.5)}
-              disabled={hoursWorked >= 24}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+
+            {/* Fracción decimal */}
+            <div className="space-y-2">
+              <Label htmlFor="hours-fraction" className="text-xs text-muted-foreground">
+                Fracción (décimas)
+              </Label>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onFractionChange(Math.max(0, hoursFraction - 1))}
+                  disabled={hoursFraction <= 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                
+                <Input
+                  id="hours-fraction"
+                  type="number"
+                  min="0"
+                  max="9"
+                  value={hoursFraction}
+                  onChange={(e) => onFractionChange(Math.min(9, Math.max(0, parseInt(e.target.value) || 0)))}
+                  className="text-center text-lg font-mono"
+                />
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onFractionChange(Math.min(9, hoursFraction + 1))}
+                  disabled={hoursFraction >= 9}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
           
           {/* Quick Preset Buttons */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2 mt-3">
             {[4, 8, 10, 12].map(hours => (
               <Button
                 key={hours}
+                type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => onWorkedChange(hours)}
-                className={hoursWorked === hours ? 'bg-primary text-primary-foreground' : ''}
+                onClick={() => {
+                  onWorkedChange(hours);
+                  onFractionChange(0);
+                }}
+                className={hoursWorked === hours && hoursFraction === 0 ? 'bg-primary text-primary-foreground' : ''}
               >
                 {hours}h
               </Button>
@@ -106,7 +165,7 @@ export function HourometerInput({
           </div>
           
           <p className="text-xs text-muted-foreground text-center">
-            Use los botones + / - para ajustar en incrementos de 0.5h
+            Ejemplo: 12 horas + 2 décimas = 12.2h (12h 12min)
           </p>
         </div>
 
@@ -119,7 +178,7 @@ export function HourometerInput({
             </div>
           </div>
           <p className="text-xs text-muted-foreground">
-            Horómetro inicial + horas trabajadas = {formatHours(initialHours)} + {formatHours(hoursWorked)} = {formatHours(finalHours)}
+            Horómetro inicial + horas trabajadas + fracción = {formatHours(initialHours)} + {hoursWorked}.{hoursFraction} = {formatHours(finalHours)}
           </p>
         </div>
 
