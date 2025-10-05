@@ -48,13 +48,20 @@ serve(async (req) => {
       );
     }
 
+    // Normalize username (trim and lowercase)
+    const normalizedUsername = username.trim().toLowerCase();
+    
+    console.log('Login attempt for user:', normalizedUsername);
+
     // Find user by username (case-insensitive)
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
-      .ilike('username', username)
+      .ilike('username', normalizedUsername)
       .eq('status', 'activo')
       .single();
+
+    console.log('User search result:', { found: !!user, error: userError });
 
     if (userError || !user) {
       console.log('User not found or error:', userError);

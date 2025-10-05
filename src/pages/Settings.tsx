@@ -109,21 +109,37 @@ export default function Settings() {
       return;
     }
 
+    // Normalize username
+    const normalizedUsername = formData.username.trim().toLowerCase().replace(/\s+/g, '_');
+    
     try {
+      // Check if username already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .ilike('username', normalizedUsername)
+        .single();
+      
+      if (existingUser) {
+        setFormErrors({ username: 'Este nombre de usuario ya existe' });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .insert([{
-          username: formData.username,
-          full_name: formData.full_name,
-          password_hash: formData.password, // In production, this should be hashed
-          role: formData.role
+          username: normalizedUsername,
+          full_name: formData.full_name.trim(),
+          password_hash: formData.password,
+          role: formData.role,
+          status: 'activo'
         }]);
 
       if (error) throw error;
 
       toast({
         title: "Usuario creado",
-        description: "El usuario ha sido creado exitosamente",
+        description: `Usuario creado exitosamente. Nombre de usuario: ${normalizedUsername}`,
       });
 
       setCreateDialogOpen(false);
@@ -144,6 +160,16 @@ export default function Settings() {
     if (!selectedUser) return;
 
     try {
+      // Normalize username if it's being updated
+      if (updatedData.username) {
+        updatedData.username = updatedData.username.trim().toLowerCase().replace(/\s+/g, '_');
+      }
+      
+      // Normalize full_name if it's being updated
+      if (updatedData.full_name) {
+        updatedData.full_name = updatedData.full_name.trim();
+      }
+
       const { error } = await supabase
         .from('users')
         .update(updatedData)
@@ -156,8 +182,11 @@ export default function Settings() {
         description: "El usuario ha sido actualizado exitosamente",
       });
 
-      loadUsers();
-      setDetailModalOpen(false);
+      // Wait a bit before closing modal to ensure the data is updated
+      await loadUsers();
+      setTimeout(() => {
+        setDetailModalOpen(false);
+      }, 100);
     } catch (error) {
       console.error('Error updating user:', error);
       toast({

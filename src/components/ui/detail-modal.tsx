@@ -55,9 +55,11 @@ export function DetailModal({
   const [loading, setLoading] = useState(false);
 
   React.useEffect(() => {
-    setEditedData(data);
-    setIsEditing(false);
-  }, [data, open]);
+    if (open) {
+      setEditedData(data);
+      setIsEditing(false);
+    }
+  }, [open]);
 
   const handleSave = async () => {
     if (!onSave) return;

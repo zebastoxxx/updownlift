@@ -117,15 +117,32 @@ export default function UserManagement() {
       return;
     }
 
+    // Normalize username
+    const normalizedUsername = formData.username.trim().toLowerCase().replace(/\s+/g, '_');
+
     try {
+      // Check if username already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .ilike('username', normalizedUsername)
+        .single();
+      
+      if (existingUser) {
+        setErrors({ username: 'Este nombre de usuario ya existe' });
+        setIsSubmitting(false);
+        return;
+      }
+
       // For demo purposes, using simple password storage - in production use proper hashing
       const { error } = await supabase
         .from('users')
         .insert([{
-          username: formData.username,
-          full_name: formData.full_name,
-          password_hash: formData.password, // In production, hash this
+          username: normalizedUsername,
+          full_name: formData.full_name.trim(),
+          password_hash: formData.password,
           role: formData.role,
+          status: 'activo',
           created_by: currentUser?.id,
         }]);
 
@@ -140,7 +157,7 @@ export default function UserManagement() {
 
       toast({
         title: "Usuario creado",
-        description: "El usuario se ha creado exitosamente",
+        description: `Usuario creado exitosamente. Nombre de usuario: ${normalizedUsername}`,
       });
 
       setShowCreateDialog(false);
