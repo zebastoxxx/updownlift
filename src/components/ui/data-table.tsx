@@ -102,12 +102,15 @@ export function DataTable<TData, TValue>({
         id: "actions",
         header: "Acciones",
         cell: ({ row }) => (
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-2">
             {onView && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onView(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onView(row.original);
+                }}
                 className="h-8 w-8 p-0"
               >
                 <Eye className="h-4 w-4" />
@@ -117,7 +120,10 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onEdit(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(row.original);
+                }}
                 className="h-8 w-8 p-0"
               >
                 <Edit2 className="h-4 w-4" />
@@ -127,7 +133,10 @@ export function DataTable<TData, TValue>({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDelete(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(row.original);
+                }}
                 className="h-8 w-8 p-0 text-destructive hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />

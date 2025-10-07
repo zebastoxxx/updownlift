@@ -59,7 +59,7 @@ export function DetailModal({
       setEditedData(data);
       setIsEditing(false);
     }
-  }, [open, data]);
+  }, [open]);
 
   const handleSave = async () => {
     if (!onSave) return;

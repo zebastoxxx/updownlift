@@ -191,8 +191,10 @@ export default function Settings() {
         description: "El usuario ha sido actualizado exitosamente",
       });
 
-      // Reload users to refresh the modal
+      // Reload users and close modal
       await loadUsers();
+      setDetailModalOpen(false);
+      setSelectedUser(null);
     } catch (error) {
       console.error('Error updating user:', error);
       toast({
@@ -234,7 +236,7 @@ export default function Settings() {
         description: "El usuario ha sido eliminado exitosamente",
       });
 
-      loadUsers();
+      await loadUsers();
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
