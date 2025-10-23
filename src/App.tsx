@@ -12,6 +12,7 @@ import Clients from "./pages/Clients";
 import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 import Preoperational from "./pages/Preoperational";
+import WarehouseInspection from "./pages/WarehouseInspection";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -82,6 +83,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <Preoperational />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/warehouse-inspection"
+              element={
+                <ProtectedRoute requiredRole="supervisor">
+                  <Layout>
+                    <WarehouseInspection />
                   </Layout>
                 </ProtectedRoute>
               }

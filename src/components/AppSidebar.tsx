@@ -4,7 +4,8 @@ import {
   FolderOpen, 
   ClipboardCheck, 
   Settings, 
-  BarChart3
+  BarChart3,
+  PackageCheck
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +44,7 @@ export function AppSidebar() {
     // Machines, Clients, Projects - for supervisors and administrators
     if (hasPermission("supervisor")) {
       items.push(
+        { title: "Bodega", url: "/warehouse-inspection", icon: PackageCheck },
         { title: "Máquinas", url: "/machines", icon: Truck },
         { title: "Clientes", url: "/clients", icon: Users },
         { title: "Proyectos", url: "/projects", icon: FolderOpen }

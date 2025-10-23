@@ -499,19 +499,185 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouse_inspection_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_type: string
+          url: string
+          warehouse_inspection_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type: string
+          url: string
+          warehouse_inspection_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string
+          url?: string
+          warehouse_inspection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_inspection_photos_warehouse_inspection_id_fkey"
+            columns: ["warehouse_inspection_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_inspections: {
+        Row: {
+          battery_condition: string | null
+          body_condition: string | null
+          cabin_cleanliness: string | null
+          checklist: Json | null
+          coolant_level: string | null
+          created_at: string
+          datetime: string
+          documents_complete: boolean | null
+          documents_missing: string | null
+          fire_extinguisher: boolean | null
+          first_aid_kit: boolean | null
+          fuel_level: string | null
+          horn_working: boolean | null
+          horometer_reading: number | null
+          hoses_condition: string | null
+          hydraulic_level: string | null
+          id: string
+          inspection_type: string
+          leaks_detected: boolean | null
+          leaks_location: string | null
+          lights_note: string | null
+          lights_working: boolean | null
+          machine_id: string
+          mirrors_intact: boolean | null
+          observations: string | null
+          oil_level: string | null
+          overall_condition: string
+          photos_count: number | null
+          reflective_triangles: boolean | null
+          safety_cones: boolean | null
+          seat_condition: string | null
+          tire_condition: string | null
+          tire_pressure_ok: boolean | null
+          tools_complete: boolean | null
+          tools_missing: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          windows_intact: boolean | null
+          windows_note: string | null
+        }
+        Insert: {
+          battery_condition?: string | null
+          body_condition?: string | null
+          cabin_cleanliness?: string | null
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          documents_complete?: boolean | null
+          documents_missing?: string | null
+          fire_extinguisher?: boolean | null
+          first_aid_kit?: boolean | null
+          fuel_level?: string | null
+          horn_working?: boolean | null
+          horometer_reading?: number | null
+          hoses_condition?: string | null
+          hydraulic_level?: string | null
+          id?: string
+          inspection_type: string
+          leaks_detected?: boolean | null
+          leaks_location?: string | null
+          lights_note?: string | null
+          lights_working?: boolean | null
+          machine_id: string
+          mirrors_intact?: boolean | null
+          observations?: string | null
+          oil_level?: string | null
+          overall_condition: string
+          photos_count?: number | null
+          reflective_triangles?: boolean | null
+          safety_cones?: boolean | null
+          seat_condition?: string | null
+          tire_condition?: string | null
+          tire_pressure_ok?: boolean | null
+          tools_complete?: boolean | null
+          tools_missing?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          windows_intact?: boolean | null
+          windows_note?: string | null
+        }
+        Update: {
+          battery_condition?: string | null
+          body_condition?: string | null
+          cabin_cleanliness?: string | null
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          documents_complete?: boolean | null
+          documents_missing?: string | null
+          fire_extinguisher?: boolean | null
+          first_aid_kit?: boolean | null
+          fuel_level?: string | null
+          horn_working?: boolean | null
+          horometer_reading?: number | null
+          hoses_condition?: string | null
+          hydraulic_level?: string | null
+          id?: string
+          inspection_type?: string
+          leaks_detected?: boolean | null
+          leaks_location?: string | null
+          lights_note?: string | null
+          lights_working?: boolean | null
+          machine_id?: string
+          mirrors_intact?: boolean | null
+          observations?: string | null
+          oil_level?: string | null
+          overall_condition?: string
+          photos_count?: number | null
+          reflective_triangles?: boolean | null
+          safety_cones?: boolean | null
+          seat_condition?: string | null
+          tire_condition?: string | null
+          tire_pressure_ok?: boolean | null
+          tools_complete?: boolean | null
+          tools_missing?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          windows_intact?: boolean | null
+          windows_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_inspections_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_role: {
-        Args: { user_id: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      get_user_role: { Args: { user_id: string }; Returns: string }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
