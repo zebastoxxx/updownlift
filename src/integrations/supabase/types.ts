@@ -14,7 +14,615 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string | null
+          city: string | null
+          contact_person: string | null
+          country: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          status: string
+          tax_id: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          status?: string
+          tax_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          country?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          status?: string
+          tax_id?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
+      machines: {
+        Row: {
+          brand: string | null
+          created_at: string
+          current_hours: number | null
+          id: string
+          last_corrective_maintenance_date: string | null
+          last_preop_date: string | null
+          last_preventive_maintenance_date: string | null
+          location: string | null
+          model: string | null
+          name: string
+          next_certification_date: string | null
+          next_preventive_hours: number | null
+          serial_number: string | null
+          status: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          current_hours?: number | null
+          id?: string
+          last_corrective_maintenance_date?: string | null
+          last_preop_date?: string | null
+          last_preventive_maintenance_date?: string | null
+          location?: string | null
+          model?: string | null
+          name: string
+          next_certification_date?: string | null
+          next_preventive_hours?: number | null
+          serial_number?: string | null
+          status?: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          current_hours?: number | null
+          id?: string
+          last_corrective_maintenance_date?: string | null
+          last_preop_date?: string | null
+          last_preventive_maintenance_date?: string | null
+          location?: string | null
+          model?: string | null
+          name?: string
+          next_certification_date?: string | null
+          next_preventive_hours?: number | null
+          serial_number?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      preoperational: {
+        Row: {
+          checklist: Json | null
+          coolant_level: string | null
+          created_at: string
+          datetime: string
+          fuel_level: string | null
+          greased: boolean | null
+          horometer_final: number | null
+          horometer_initial: number | null
+          hoses_note: string | null
+          hoses_status: string | null
+          hours_fraction: number | null
+          hours_worked: number | null
+          hydraulic_level: string | null
+          id: string
+          lights_front_left: Json | null
+          lights_front_right: Json | null
+          lights_note: string | null
+          lights_rear_left: Json | null
+          lights_rear_right: Json | null
+          lights_status: string | null
+          machine_id: string
+          observations: string | null
+          oil_level: string | null
+          operator_signature_timestamp: string | null
+          operator_signature_url: string | null
+          project_id: string
+          reverse_horn: Json | null
+          supervisor_signature_timestamp: string | null
+          supervisor_signature_url: string | null
+          sync_status: string | null
+          tires_action: string | null
+          tires_bearing_issue: boolean | null
+          tires_punctured: boolean | null
+          tires_wear: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          fuel_level?: string | null
+          greased?: boolean | null
+          horometer_final?: number | null
+          horometer_initial?: number | null
+          hoses_note?: string | null
+          hoses_status?: string | null
+          hours_fraction?: number | null
+          hours_worked?: number | null
+          hydraulic_level?: string | null
+          id?: string
+          lights_front_left?: Json | null
+          lights_front_right?: Json | null
+          lights_note?: string | null
+          lights_rear_left?: Json | null
+          lights_rear_right?: Json | null
+          lights_status?: string | null
+          machine_id: string
+          observations?: string | null
+          oil_level?: string | null
+          operator_signature_timestamp?: string | null
+          operator_signature_url?: string | null
+          project_id: string
+          reverse_horn?: Json | null
+          supervisor_signature_timestamp?: string | null
+          supervisor_signature_url?: string | null
+          sync_status?: string | null
+          tires_action?: string | null
+          tires_bearing_issue?: boolean | null
+          tires_punctured?: boolean | null
+          tires_wear?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          fuel_level?: string | null
+          greased?: boolean | null
+          horometer_final?: number | null
+          horometer_initial?: number | null
+          hoses_note?: string | null
+          hoses_status?: string | null
+          hours_fraction?: number | null
+          hours_worked?: number | null
+          hydraulic_level?: string | null
+          id?: string
+          lights_front_left?: Json | null
+          lights_front_right?: Json | null
+          lights_note?: string | null
+          lights_rear_left?: Json | null
+          lights_rear_right?: Json | null
+          lights_status?: string | null
+          machine_id?: string
+          observations?: string | null
+          oil_level?: string | null
+          operator_signature_timestamp?: string | null
+          operator_signature_url?: string | null
+          project_id?: string
+          reverse_horn?: Json | null
+          supervisor_signature_timestamp?: string | null
+          supervisor_signature_url?: string | null
+          sync_status?: string | null
+          tires_action?: string | null
+          tires_bearing_issue?: boolean | null
+          tires_punctured?: boolean | null
+          tires_wear?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preoperational_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "preoperational_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      preoperational_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_type: string | null
+          preoperational_id: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string | null
+          preoperational_id: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string | null
+          preoperational_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preoperational_photos_preoperational_id_fkey"
+            columns: ["preoperational_id"]
+            isOneToOne: false
+            referencedRelation: "preoperational"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_clients: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          project_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          project_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_clients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_clients_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_machines: {
+        Row: {
+          created_at: string
+          id: string
+          machine_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          machine_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          machine_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_machines_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_machines_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          address: string | null
+          city: string | null
+          client_name: string | null
+          country: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          location: string | null
+          name: string
+          start_date: string | null
+          status: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          client_name?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          start_date?: string | null
+          status?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          client_name?: string | null
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          start_date?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      user_table_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          preferences: Json
+          table_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preferences?: Json
+          table_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preferences?: Json
+          table_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          full_name: string
+          id: string
+          password_hash: string
+          role: string
+          status: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          full_name: string
+          id?: string
+          password_hash: string
+          role?: string
+          status?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          full_name?: string
+          id?: string
+          password_hash?: string
+          role?: string
+          status?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      warehouse_inspection_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          photo_type: string | null
+          url: string
+          warehouse_inspection_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string | null
+          url: string
+          warehouse_inspection_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          photo_type?: string | null
+          url?: string
+          warehouse_inspection_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_inspection_photos_warehouse_inspection_id_fkey"
+            columns: ["warehouse_inspection_id"]
+            isOneToOne: false
+            referencedRelation: "warehouse_inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      warehouse_inspections: {
+        Row: {
+          battery_condition: string | null
+          body_condition: string | null
+          cabin_cleanliness: string | null
+          checklist: Json | null
+          coolant_level: string | null
+          created_at: string
+          datetime: string
+          documents_complete: boolean | null
+          documents_missing: string | null
+          fire_extinguisher: boolean | null
+          first_aid_kit: boolean | null
+          fuel_level: string | null
+          horn_working: boolean | null
+          horometer_reading: number | null
+          hoses_condition: string | null
+          hydraulic_level: string | null
+          id: string
+          inspection_type: string
+          leaks_detected: boolean | null
+          leaks_location: string | null
+          lights_note: string | null
+          lights_working: boolean | null
+          machine_id: string
+          mirrors_intact: boolean | null
+          observations: string | null
+          oil_level: string | null
+          overall_condition: string | null
+          photos_count: number | null
+          reflective_triangles: boolean | null
+          safety_cones: boolean | null
+          seat_condition: string | null
+          tire_condition: string | null
+          tire_pressure_ok: boolean | null
+          tools_complete: boolean | null
+          tools_missing: string | null
+          user_id: string | null
+          username: string | null
+          windows_intact: boolean | null
+          windows_note: string | null
+        }
+        Insert: {
+          battery_condition?: string | null
+          body_condition?: string | null
+          cabin_cleanliness?: string | null
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          documents_complete?: boolean | null
+          documents_missing?: string | null
+          fire_extinguisher?: boolean | null
+          first_aid_kit?: boolean | null
+          fuel_level?: string | null
+          horn_working?: boolean | null
+          horometer_reading?: number | null
+          hoses_condition?: string | null
+          hydraulic_level?: string | null
+          id?: string
+          inspection_type: string
+          leaks_detected?: boolean | null
+          leaks_location?: string | null
+          lights_note?: string | null
+          lights_working?: boolean | null
+          machine_id: string
+          mirrors_intact?: boolean | null
+          observations?: string | null
+          oil_level?: string | null
+          overall_condition?: string | null
+          photos_count?: number | null
+          reflective_triangles?: boolean | null
+          safety_cones?: boolean | null
+          seat_condition?: string | null
+          tire_condition?: string | null
+          tire_pressure_ok?: boolean | null
+          tools_complete?: boolean | null
+          tools_missing?: string | null
+          user_id?: string | null
+          username?: string | null
+          windows_intact?: boolean | null
+          windows_note?: string | null
+        }
+        Update: {
+          battery_condition?: string | null
+          body_condition?: string | null
+          cabin_cleanliness?: string | null
+          checklist?: Json | null
+          coolant_level?: string | null
+          created_at?: string
+          datetime?: string
+          documents_complete?: boolean | null
+          documents_missing?: string | null
+          fire_extinguisher?: boolean | null
+          first_aid_kit?: boolean | null
+          fuel_level?: string | null
+          horn_working?: boolean | null
+          horometer_reading?: number | null
+          hoses_condition?: string | null
+          hydraulic_level?: string | null
+          id?: string
+          inspection_type?: string
+          leaks_detected?: boolean | null
+          leaks_location?: string | null
+          lights_note?: string | null
+          lights_working?: boolean | null
+          machine_id?: string
+          mirrors_intact?: boolean | null
+          observations?: string | null
+          oil_level?: string | null
+          overall_condition?: string | null
+          photos_count?: number | null
+          reflective_triangles?: boolean | null
+          safety_cones?: boolean | null
+          seat_condition?: string | null
+          tire_condition?: string | null
+          tire_pressure_ok?: boolean | null
+          tools_complete?: boolean | null
+          tools_missing?: string | null
+          user_id?: string | null
+          username?: string | null
+          windows_intact?: boolean | null
+          windows_note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_inspections_machine_id_fkey"
+            columns: ["machine_id"]
+            isOneToOne: false
+            referencedRelation: "machines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
